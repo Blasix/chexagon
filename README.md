@@ -1,6 +1,6 @@
 # chexagon
 
-A new Flutter project.
+Chess but with hexagons.
 
 ## Getting Started
 
@@ -14,3 +14,9 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Made with help of
+
+https://www.youtube.com/watch?v=bgR3yESAEVE
+
+https://www.youtube.com/watch?v=cXfX1yYbAno&t
