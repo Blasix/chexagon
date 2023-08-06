@@ -175,14 +175,154 @@ class _GameBoardState extends State<GameBoard> {
 
         break;
       case ChessPieceType.rook:
+        var directions = [
+          [0, -1],
+          [1, -1],
+          [1, 0],
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
+        ];
+        for (var directions in directions) {
+          var i = 1;
+          while (true) {
+            var q2 = q + directions[0] * i;
+            var r2 = r + directions[1] * i;
+            if (!isInBoard(q2, r2)) {
+              break;
+            }
+            if (board[q2][r2] != null) {
+              if (board[q2][r2]!.isWhite != piece.isWhite) {
+                canidateMoves.add([q2, r2]); // Capture
+              }
+              break;
+            }
+            canidateMoves.add([q2, r2]);
+            i++;
+          }
+        }
         break;
       case ChessPieceType.knight:
+        var directions = [
+          [1, -3],
+          [2, -3],
+          [3, -2],
+          [3, -1],
+          [2, 1],
+          [1, 2],
+          [-1, 3],
+          [-2, 3],
+          [-3, 2],
+          [-3, 1],
+          [-2, -1],
+          [-1, -2],
+        ];
+        for (var directions in directions) {
+          var q2 = q + directions[0];
+          var r2 = r + directions[1];
+          if (!isInBoard(q2, r2)) {
+            continue;
+          }
+          if (board[q2][r2] != null) {
+            if (board[q2][r2]!.isWhite != piece.isWhite) {
+              canidateMoves.add([q2, r2]); // Capture
+            }
+            continue;
+          }
+          canidateMoves.add([q2, r2]);
+        }
         break;
       case ChessPieceType.bishop:
+        var directions = [
+          [1, -2],
+          [2, -1],
+          [1, 1],
+          [-1, 2],
+          [-2, 1],
+          [-1, -1],
+        ];
+        for (var directions in directions) {
+          var i = 1;
+          while (true) {
+            var q2 = q + directions[0] * i;
+            var r2 = r + directions[1] * i;
+            if (!isInBoard(q2, r2)) {
+              break;
+            }
+            if (board[q2][r2] != null) {
+              if (board[q2][r2]!.isWhite != piece.isWhite) {
+                canidateMoves.add([q2, r2]); // Capture
+              }
+              break;
+            }
+            canidateMoves.add([q2, r2]);
+            i++;
+          }
+        }
         break;
       case ChessPieceType.king:
+        var directions = [
+          [0, -1],
+          [1, -1],
+          [1, 0],
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
+          [1, -2],
+          [2, -1],
+          [1, 1],
+          [-1, 2],
+          [-2, 1],
+          [-1, -1],
+        ];
+        for (var directions in directions) {
+          var q2 = q + directions[0];
+          var r2 = r + directions[1];
+          if (!isInBoard(q2, r2)) {
+            continue;
+          }
+          if (board[q2][r2] != null) {
+            if (board[q2][r2]!.isWhite != piece.isWhite) {
+              canidateMoves.add([q2, r2]); // Capture
+            }
+            continue;
+          }
+          canidateMoves.add([q2, r2]);
+        }
         break;
       case ChessPieceType.queen:
+        var directions = [
+          [0, -1],
+          [1, -1],
+          [1, 0],
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
+          [1, -2],
+          [2, -1],
+          [1, 1],
+          [-1, 2],
+          [-2, 1],
+          [-1, -1],
+        ];
+        for (var directions in directions) {
+          var i = 1;
+          while (true) {
+            var q2 = q + directions[0] * i;
+            var r2 = r + directions[1] * i;
+            if (!isInBoard(q2, r2)) {
+              break;
+            }
+            if (board[q2][r2] != null) {
+              if (board[q2][r2]!.isWhite != piece.isWhite) {
+                canidateMoves.add([q2, r2]); // Capture
+              }
+              break;
+            }
+            canidateMoves.add([q2, r2]);
+            i++;
+          }
+        }
         break;
     }
     return canidateMoves;
