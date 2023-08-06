@@ -1,6 +1,5 @@
-import 'dart:math';
-
 import 'package:chexagon/components/piece.dart';
+import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
@@ -127,8 +126,80 @@ class _GameBoardState extends State<GameBoard> {
     board = newBoard;
   }
 
-  // declare a variable to hold the piece
+  // user selects a piece
+  void pieceSelected(Coordinates coordinates) {
+    setState(() {
+      int q = 5 + coordinates.q;
+      int r = 5 + coordinates.r;
+      // selected a piece if there is one
+      if (board[q][r] != null) {
+        selectedPiece = board[q][r];
+        selectedCoordinates = coordinates;
+      }
+      validMoves = calculateRawValidMoves(q, r, selectedPiece!);
+    });
+  }
+
+  // calculate the raw valid moves for a piece
+  List<List<int>> calculateRawValidMoves(int q, int r, ChessPiece? piece) {
+    List<List<int>> canidateMoves = [];
+
+    // different moves for different color
+    int direction = piece!.isWhite ? -1 : 1;
+
+    switch (piece.type) {
+      case ChessPieceType.pawn:
+        // pawn can move forward
+        if (isInBoard(q, r + direction) && board[q][r + direction] == null) {
+          canidateMoves.add([q, r + direction]);
+        }
+        // pawn can move 2 hexagons foreward if it is the first move
+        if (isPawnAtInitialPosition(q, r, piece.isWhite)) {
+          if (isInBoard(q, r + 2 * direction) &&
+              board[q][r + 2 * direction] == null) {
+            canidateMoves.add([q, r + 2 * direction]);
+          }
+        }
+        // pawn can move diagonally if there is an enemy piece
+        if (isInBoard(q - direction, r + direction) &&
+            board[q - direction][r + direction] != null &&
+            board[q - direction][r + direction]!.isWhite != piece.isWhite) {
+          canidateMoves.add([q - direction, r + direction]);
+        }
+        if (isInBoard(q + direction, r) &&
+            board[q + direction][r] != null &&
+            board[q + direction][r]!.isWhite != piece.isWhite) {
+          canidateMoves.add([q + direction, r]);
+        }
+        // TODO: add en passant
+
+        break;
+      case ChessPieceType.rook:
+        break;
+      case ChessPieceType.knight:
+        break;
+      case ChessPieceType.bishop:
+        break;
+      case ChessPieceType.king:
+        break;
+      case ChessPieceType.queen:
+        break;
+    }
+    return canidateMoves;
+  }
+
+  // declare a variables
   ChessPiece? piece;
+  ChessPiece? selectedPiece;
+  Coordinates? selectedCoordinates;
+  bool isSelected = false;
+  bool isValidMove = false;
+  bool isWhiteTurn = true;
+
+  // A list of valid moves for the selected piece
+  // each move is represented by a list with 2 elements: q and r
+  List<List<int>> validMoves = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,25 +209,46 @@ class _GameBoardState extends State<GameBoard> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         buildTile: (coordinates) {
-          // TODO: convert the 2-dimensional list index to pieces on the board
           piece = board[5 + coordinates.q][5 + coordinates.r];
+          isSelected = selectedCoordinates == coordinates;
+          for (var position in validMoves) {
+            if (position[0] == 5 + coordinates.q &&
+                position[1] == 5 + coordinates.r) {
+              isValidMove = true;
+              break;
+            } else {
+              isValidMove = false;
+            }
+          }
+          Color? color = whatColor(coordinates);
+
+          // set color for the tile
+          if (isSelected) {
+            color = Colors.green;
+          } else if (isValidMove) {
+            color = Colors.green[300];
+          }
 
           // return a widget for the tile
           return HexagonWidgetBuilder(
-            color: whatColor(coordinates),
-            padding: 2.0,
-            cornerRadius: 8.0,
-            child: piece != null
-                ? Padding(
-                    padding: const EdgeInsets.all(5),
-                    child: Image.asset(
-                      color: piece!.isWhite ? Colors.white : Colors.black,
-                      piece!.imagePath,
-                      fit: BoxFit.contain,
-                    ),
-                  )
-                : null,
-          );
+              color: color,
+              padding: 2.0,
+              cornerRadius: 8.0,
+              child: GestureDetector(
+                onTap: () => pieceSelected(coordinates),
+                child: SizedBox(
+                  child: piece != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(5),
+                          child: Image.asset(
+                            color: piece!.isWhite ? Colors.white : Colors.black,
+                            piece!.imagePath,
+                            fit: BoxFit.contain,
+                          ),
+                        )
+                      : null,
+                ),
+              ));
         },
       ),
     );
