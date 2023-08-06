@@ -1,6 +1,7 @@
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
+import 'package:chexagon/helper/piece_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 
@@ -131,12 +132,27 @@ class _GameBoardState extends State<GameBoard> {
     setState(() {
       int q = 5 + coordinates.q;
       int r = 5 + coordinates.r;
-      // selected a piece if there is one
-      if (board[q][r] != null) {
+      // no piece is selected
+      if (selectedPiece == null && board[q][r] != null) {
         selectedPiece = board[q][r];
         selectedCoordinates = coordinates;
       }
-      validMoves = calculateRawValidMoves(q, r, selectedPiece!);
+
+      // piece already selected, select another one
+      else if (board[q][r] != null &&
+          board[q][r]!.isWhite == selectedPiece!.isWhite) {
+        selectedPiece = board[q][r];
+        selectedCoordinates = coordinates;
+      }
+
+      // if user taps on valid move, move the piece
+      else if (selectedPiece != null &&
+          validMoves.any((element) => element[0] == q && element[1] == r)) {
+        movePiece(q, r);
+      }
+
+      // if piece is selected, calculate valid moves
+      validMoves = calculateRawValidMoves(q, r, selectedPiece);
     });
   }
 
@@ -144,8 +160,12 @@ class _GameBoardState extends State<GameBoard> {
   List<List<int>> calculateRawValidMoves(int q, int r, ChessPiece? piece) {
     List<List<int>> canidateMoves = [];
 
+    if (piece == null) {
+      return canidateMoves;
+    }
+
     // different moves for different color
-    int direction = piece!.isWhite ? -1 : 1;
+    int direction = piece.isWhite ? -1 : 1;
 
     switch (piece.type) {
       case ChessPieceType.pawn:
@@ -328,6 +348,33 @@ class _GameBoardState extends State<GameBoard> {
     return canidateMoves;
   }
 
+  // move the piece to the new location
+  void movePiece(int q, int r) {
+    // if new spot is occupied with enemy piece, capture it
+    if (board[q][r] != null) {
+      //add to appropriate list
+      if (board[q][r]!.isWhite) {
+        whiteCaptured.add(board[q][r]!);
+      } else {
+        blackCaptured.add(board[q][r]!);
+      }
+    }
+
+    // move piece and clear the old location
+    board[q][r] = selectedPiece;
+    board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+
+    // clear selection
+    setState(() {
+      selectedPiece = null;
+      selectedCoordinates = null;
+      validMoves = [];
+    });
+
+    // change turn
+    isWhiteTurn = !isWhiteTurn;
+  }
+
   // declare a variables
   ChessPiece? piece;
   ChessPiece? selectedPiece;
@@ -340,57 +387,112 @@ class _GameBoardState extends State<GameBoard> {
   // each move is represented by a list with 2 elements: q and r
   List<List<int>> validMoves = [];
 
+  // A list of white pieces that have been captured
+  List<ChessPiece> whiteCaptured = [];
+
+  // A list of black pieces that have been captured
+  List<ChessPiece> blackCaptured = [];
+
   @override
   Widget build(BuildContext context) {
+    whiteCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
+    blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
     return Scaffold(
-      body: HexagonGrid.flat(
-        color: Colors.grey[300],
-        depth: 5,
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        buildTile: (coordinates) {
-          piece = board[5 + coordinates.q][5 + coordinates.r];
-          isSelected = selectedCoordinates == coordinates;
-          for (var position in validMoves) {
-            if (position[0] == 5 + coordinates.q &&
-                position[1] == 5 + coordinates.r) {
-              isValidMove = true;
-              break;
-            } else {
-              isValidMove = false;
-            }
-          }
-          Color? color = whatColor(coordinates);
+      backgroundColor: Colors.grey[300],
+      body: Stack(children: [
+        Center(
+          child: HexagonGrid.flat(
+            depth: 5,
+            height: MediaQuery.of(context).size.height - 120,
+            width: MediaQuery.of(context).size.width,
+            buildTile: (coordinates) {
+              piece = board[5 + coordinates.q][5 + coordinates.r];
+              isSelected = selectedCoordinates == coordinates;
+              for (var position in validMoves) {
+                if (position[0] == 5 + coordinates.q &&
+                    position[1] == 5 + coordinates.r) {
+                  isValidMove = true;
+                  break;
+                } else {
+                  isValidMove = false;
+                }
+              }
+              Color? color = whatColor(coordinates);
 
-          // set color for the tile
-          if (isSelected) {
-            color = Colors.green;
-          } else if (isValidMove) {
-            color = Colors.green[300];
-          }
+              // set color for the tile
+              if (isSelected) {
+                color = Colors.green;
+              } else if (isValidMove) {
+                color = Colors.green[300];
+              }
 
-          // return a widget for the tile
-          return HexagonWidgetBuilder(
-              color: color,
-              padding: 2.0,
-              cornerRadius: 8.0,
-              child: GestureDetector(
-                onTap: () => pieceSelected(coordinates),
-                child: SizedBox(
-                  child: piece != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(5),
-                          child: Image.asset(
-                            color: piece!.isWhite ? Colors.white : Colors.black,
-                            piece!.imagePath,
-                            fit: BoxFit.contain,
-                          ),
-                        )
-                      : null,
-                ),
-              ));
-        },
-      ),
+              // return a widget for the tile
+              return HexagonWidgetBuilder(
+                  color: color,
+                  padding: 2.0,
+                  cornerRadius: 8.0,
+                  child: GestureDetector(
+                    onTap: () {
+                      pieceSelected(coordinates);
+                    },
+                    child: piece != null
+                        ? Padding(
+                            padding: const EdgeInsets.all(5),
+                            child: Image.asset(
+                              color:
+                                  piece!.isWhite ? Colors.white : Colors.black,
+                              piece!.imagePath,
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        : null,
+                  ));
+            },
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              children: [
+                for (var piece in blackCaptured) Image.asset(piece.imagePath),
+                if (calculateWorth(blackCaptured, whiteCaptured) < 0)
+                  Text(
+                    "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black.withOpacity(0.5)),
+                  )
+              ],
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              children: [
+                for (var piece in whiteCaptured)
+                  Image.asset(
+                    piece.imagePath,
+                    color: Colors.white,
+                  ),
+                if (calculateWorth(blackCaptured, whiteCaptured) > 0)
+                  Text(
+                    "+${calculateWorth(blackCaptured, whiteCaptured)}",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black.withOpacity(0.5)),
+                  )
+              ],
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }
