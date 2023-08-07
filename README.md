@@ -1,22 +1,17 @@
-# chexagon
+# Chexagon
 
-Chess but with hexagons.
+This game is based on chess but it is not played on a square grid but with hexagons. Hexagon chess can be played under multiple rules. for this project i used [Gliński's hexagonal chess](https://en.wikipedia.org/wiki/Hexagonal_chess). for wich the rules are mostly the same as normal chess but with changes for the hexagons and removing castling
 
-## Getting Started
+You can play the game yourself on [blasix.com](https://chexagon.blasix.com/index.html).
 
-This project is a starting point for a Flutter application.
+## Contributing
 
-A few resources to get you started if this is your first Flutter project:
+Before creating an issue, please ensure that it hasn't already been reported/suggested.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The issue tracker is only for bug reports and enhancement suggestions. If you have a question, please ask it in the [Discord server](https://discord.gg/73fj8ez9nC) instead of opening an issue – you will get redirected there anyway.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+If you wish to contribute to the Danzr codebase or documentation, feel free to fork the repository and submit a pull request.
 
-## Made with help of
-
-https://www.youtube.com/watch?v=bgR3yESAEVE
-
-https://www.youtube.com/watch?v=cXfX1yYbAno&t
+## Support
+- **[Support Server](https://discord.gg/73fj8ez9nC)**
+- **[Send a mail](https://blasix.com/contact)**
