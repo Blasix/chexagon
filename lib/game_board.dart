@@ -134,8 +134,10 @@ class _GameBoardState extends State<GameBoard> {
       int r = 5 + coordinates.r;
       // no piece is selected
       if (selectedPiece == null && board[q][r] != null) {
-        selectedPiece = board[q][r];
-        selectedCoordinates = coordinates;
+        if (board[q][r]!.isWhite == isWhiteTurn) {
+          selectedPiece = board[q][r];
+          selectedCoordinates = coordinates;
+        }
       }
 
       // piece already selected, select another one
@@ -149,10 +151,15 @@ class _GameBoardState extends State<GameBoard> {
       else if (selectedPiece != null &&
           validMoves.any((element) => element[0] == q && element[1] == r)) {
         movePiece(q, r);
+        return;
       }
 
-      // if piece is selected, calculate valid moves
-      validMoves = calculateRawValidMoves(q, r, selectedPiece);
+      if (selectedPiece != null &&
+          board[q][r] != null &&
+          board[q][r]!.isWhite == selectedPiece!.isWhite) {
+        // if piece is selected, calculate valid moves
+        validMoves = calculateRealValidMoves(q, r, selectedPiece!, true);
+      }
     });
   }
 
@@ -172,14 +179,15 @@ class _GameBoardState extends State<GameBoard> {
         // pawn can move forward
         if (isInBoard(q, r + direction) && board[q][r + direction] == null) {
           canidateMoves.add([q, r + direction]);
-        }
-        // pawn can move 2 hexagons foreward if it is the first move
-        if (isPawnAtInitialPosition(q, r, piece.isWhite)) {
-          if (isInBoard(q, r + 2 * direction) &&
-              board[q][r + 2 * direction] == null) {
-            canidateMoves.add([q, r + 2 * direction]);
+          // pawn can move 2 hexagons foreward if it is the first move
+          if (isPawnAtInitialPosition(q, r, piece.isWhite)) {
+            if (isInBoard(q, r + 2 * direction) &&
+                board[q][r + 2 * direction] == null) {
+              canidateMoves.add([q, r + 2 * direction]);
+            }
           }
         }
+
         // pawn can move diagonally if there is an enemy piece
         if (isInBoard(q - direction, r + direction) &&
             board[q - direction][r + direction] != null &&
@@ -348,6 +356,70 @@ class _GameBoardState extends State<GameBoard> {
     return canidateMoves;
   }
 
+  // calculate the real valid moves for a piece
+  List<List<int>> calculateRealValidMoves(
+      int q, int r, ChessPiece piece, bool checkSimulation) {
+    List<List<int>> realValidMoves = [];
+    List<List<int>> canidateMoves = calculateRawValidMoves(q, r, piece);
+
+    // after generating canidate moves, check if they are valid
+    if (checkSimulation) {
+      for (var move in canidateMoves) {
+        int endQ = move[0];
+        int endR = move[1];
+        if (simulatedMoveIsSafe(q, r, endQ, endR, piece)) {
+          realValidMoves.add(move);
+        }
+      }
+    } else {
+      realValidMoves = canidateMoves;
+    }
+    return realValidMoves;
+  }
+
+  // check if a move is safe
+  bool simulatedMoveIsSafe(int q, int r, int endQ, int endR, ChessPiece piece) {
+    // save current board state
+    ChessPiece? originalDestinationPiece = board[endQ][endR];
+
+    // if the piece is king, try new move
+    List<int>? originalKingPosition;
+    if (piece.type == ChessPieceType.king) {
+      originalKingPosition =
+          piece.isWhite ? whiteKingPosition : blackKingPosition;
+
+      // move king to new location
+      if (piece.isWhite) {
+        whiteKingPosition = [endQ, endR];
+      } else {
+        blackKingPosition = [endQ, endR];
+      }
+    }
+
+    // simulate move
+    board[endQ][endR] = piece;
+    board[q][r] = null;
+
+    // check if king is in check
+    bool isInCheck = isKingInCheck(piece.isWhite);
+
+    // undo move
+    board[q][r] = piece;
+    board[endQ][endR] = originalDestinationPiece;
+
+    // if the piece was king, undo move
+    if (piece.type == ChessPieceType.king) {
+      if (piece.isWhite) {
+        whiteKingPosition = originalKingPosition!;
+      } else {
+        blackKingPosition = originalKingPosition!;
+      }
+    }
+
+    // if king is in check, move is not safe
+    return !isInCheck;
+  }
+
   // move the piece to the new location
   void movePiece(int q, int r) {
     // if new spot is occupied with enemy piece, capture it
@@ -364,6 +436,22 @@ class _GameBoardState extends State<GameBoard> {
     board[q][r] = selectedPiece;
     board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
 
+    // check if king is in check
+    if (isKingInCheck(!isWhiteTurn)) {
+      checkStatus = true;
+    } else {
+      checkStatus = false;
+    }
+
+    // check for king
+    if (selectedPiece!.type == ChessPieceType.king) {
+      if (selectedPiece!.isWhite) {
+        whiteKingPosition = [q, r];
+      } else {
+        blackKingPosition = [q, r];
+      }
+    }
+
     // clear selection
     setState(() {
       selectedPiece = null;
@@ -375,6 +463,33 @@ class _GameBoardState extends State<GameBoard> {
     isWhiteTurn = !isWhiteTurn;
   }
 
+  // check if king is in check
+  bool isKingInCheck(bool isWhiteKing) {
+    List<int> kingPosition =
+        isWhiteKing ? whiteKingPosition : blackKingPosition;
+
+    // check if any enemy piece can capture the king
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
+        // skip empty and same color
+        if (board[i][j] == null || board[i][j]!.isWhite == isWhiteKing) {
+          continue;
+        }
+
+        List<List<int>> pieceValidMoves =
+            calculateRealValidMoves(i, j, board[i][j]!, false);
+
+        // check if any of the valid moves is the king's position
+        for (var move in pieceValidMoves) {
+          if (move[0] == kingPosition[0] && move[1] == kingPosition[1]) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   // declare a variables
   ChessPiece? piece;
   ChessPiece? selectedPiece;
@@ -382,6 +497,11 @@ class _GameBoardState extends State<GameBoard> {
   bool isSelected = false;
   bool isValidMove = false;
   bool isWhiteTurn = true;
+
+  // position of the kings
+  List<int> whiteKingPosition = [6, 9];
+  List<int> blackKingPosition = [6, 0];
+  bool checkStatus = false;
 
   // A list of valid moves for the selected piece
   // each move is represented by a list with 2 elements: q and r
@@ -393,17 +513,22 @@ class _GameBoardState extends State<GameBoard> {
   // A list of black pieces that have been captured
   List<ChessPiece> blackCaptured = [];
 
+  // sized of captured rows
+  double? capturedSize = 60;
+
   @override
   Widget build(BuildContext context) {
+    // sort captured pieces by type
     whiteCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
+
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.grey[500],
       body: Stack(children: [
         Center(
           child: HexagonGrid.flat(
             depth: 5,
-            height: MediaQuery.of(context).size.height - 120,
+            height: MediaQuery.of(context).size.height - capturedSize! * 2,
             width: MediaQuery.of(context).size.width,
             buildTile: (coordinates) {
               piece = board[5 + coordinates.q][5 + coordinates.r];
@@ -453,42 +578,50 @@ class _GameBoardState extends State<GameBoard> {
         Align(
           alignment: Alignment.bottomLeft,
           child: SizedBox(
-            height: 60,
-            child: Row(
-              children: [
-                for (var piece in blackCaptured) Image.asset(piece.imagePath),
-                if (calculateWorth(blackCaptured, whiteCaptured) < 0)
-                  Text(
-                    "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.black.withOpacity(0.5)),
-                  )
-              ],
+            height: capturedSize,
+            child: SingleChildScrollView(
+              controller: ScrollController(),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var piece in blackCaptured) Image.asset(piece.imagePath),
+                  if (calculateWorth(blackCaptured, whiteCaptured) < 0)
+                    Text(
+                      "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.black.withOpacity(0.5)),
+                    )
+                ],
+              ),
             ),
           ),
         ),
         Align(
           alignment: Alignment.topLeft,
           child: SizedBox(
-            height: 60,
-            child: Row(
-              children: [
-                for (var piece in whiteCaptured)
-                  Image.asset(
-                    piece.imagePath,
-                    color: Colors.white,
-                  ),
-                if (calculateWorth(blackCaptured, whiteCaptured) > 0)
-                  Text(
-                    "+${calculateWorth(blackCaptured, whiteCaptured)}",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.black.withOpacity(0.5)),
-                  )
-              ],
+            height: capturedSize,
+            child: SingleChildScrollView(
+              controller: ScrollController(),
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (var piece in whiteCaptured)
+                    Image.asset(
+                      piece.imagePath,
+                      color: Colors.white,
+                    ),
+                  if (calculateWorth(blackCaptured, whiteCaptured) > 0)
+                    Text(
+                      "+${calculateWorth(blackCaptured, whiteCaptured)}",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.black.withOpacity(0.5)),
+                    )
+                ],
+              ),
             ),
           ),
         ),
