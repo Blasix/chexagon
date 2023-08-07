@@ -317,6 +317,9 @@ class _GameBoardState extends State<GameBoard> {
           }
           canidateMoves.add([q2, r2]);
         }
+
+        // TODO: add castling
+
         break;
       case ChessPieceType.queen:
         var directions = [
@@ -459,6 +462,23 @@ class _GameBoardState extends State<GameBoard> {
       validMoves = [];
     });
 
+    // check for checkmate
+    if (isCheckmate(!isWhiteTurn)) {
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: const Text('Checkmate!'),
+                actions: [
+                  // play game again
+                  TextButton(
+                      onPressed: () {
+                        resetGame();
+                      },
+                      child: const Text('Play Again')),
+                ],
+              ));
+    }
+
     // change turn
     isWhiteTurn = !isWhiteTurn;
   }
@@ -488,6 +508,52 @@ class _GameBoardState extends State<GameBoard> {
       }
     }
     return false;
+  }
+
+  // check if the king is in checkmate
+  bool isCheckmate(bool isWhiteKing) {
+    // check if king is in check
+    if (!isKingInCheck(isWhiteKing)) {
+      return false;
+    }
+
+    //check if there is a legal move
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 10; j++) {
+        // skip empty and same color
+        if (board[i][j] == null || board[i][j]!.isWhite != isWhiteKing) {
+          continue;
+        }
+
+        List<List<int>> pieceValidMoves =
+            calculateRealValidMoves(i, j, board[i][j]!, false);
+
+        // if piece has no valid moves, its not checkmate
+        if (pieceValidMoves.isNotEmpty) {
+          return false;
+        }
+      }
+    }
+
+    // if there are no legal moves, checkmate
+    return true;
+  }
+
+  // reset the game
+  void resetGame() {
+    if (Navigator.canPop(context)) Navigator.pop(context);
+    _initBoard();
+    checkStatus = false;
+    whiteKingPosition = [6, 9];
+    blackKingPosition = [6, 0];
+    isWhiteTurn = true;
+    whiteCaptured.clear();
+    blackCaptured.clear();
+    isSelected = false;
+    selectedCoordinates = null;
+    selectedPiece = null;
+    validMoves.clear();
+    setState(() {});
   }
 
   // declare a variables
@@ -625,6 +691,18 @@ class _GameBoardState extends State<GameBoard> {
             ),
           ),
         ),
+        Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: Icon(
+                Icons.refresh,
+                color: Colors.black.withOpacity(0.5),
+                size: 60,
+              ),
+              onPressed: () {
+                resetGame();
+              },
+            ))
       ]),
     );
   }
