@@ -3,7 +3,9 @@ import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
 import 'package:chexagon/helper/piece_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexagon/hexagon.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GameBoard extends StatefulWidget {
   const GameBoard({super.key});
@@ -174,6 +176,8 @@ class _GameBoardState extends State<GameBoard> {
     // different moves for different color
     int direction = piece.isWhite ? -1 : 1;
 
+    //TODO add promotion
+
     switch (piece.type) {
       case ChessPieceType.pawn:
         // pawn can move forward
@@ -317,8 +321,6 @@ class _GameBoardState extends State<GameBoard> {
           }
           canidateMoves.add([q2, r2]);
         }
-
-        // TODO: add castling
 
         break;
       case ChessPieceType.queen:
@@ -588,122 +590,159 @@ class _GameBoardState extends State<GameBoard> {
     whiteCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
 
+    // sized of captured rows
+    double capturedSize = 60;
+    // available height
+    final availableHeight = MediaQuery.of(context).size.height -
+        AppBar().preferredSize.height -
+        MediaQuery.of(context).padding.top -
+        MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: Colors.grey[500],
-      body: Stack(children: [
-        Center(
-          child: HexagonGrid.flat(
-            depth: 5,
-            height: MediaQuery.of(context).size.height - capturedSize! * 2,
-            width: MediaQuery.of(context).size.width,
-            buildTile: (coordinates) {
-              piece = board[5 + coordinates.q][5 + coordinates.r];
-              isSelected = selectedCoordinates == coordinates;
-              for (var position in validMoves) {
-                if (position[0] == 5 + coordinates.q &&
-                    position[1] == 5 + coordinates.r) {
-                  isValidMove = true;
-                  break;
-                } else {
-                  isValidMove = false;
+      body: Stack(
+        children: [
+          Center(
+            child: HexagonGrid.flat(
+              depth: 5,
+              height: availableHeight - capturedSize * 2,
+              width: MediaQuery.of(context).size.width,
+              buildTile: (coordinates) {
+                piece = board[5 + coordinates.q][5 + coordinates.r];
+                isSelected = selectedCoordinates == coordinates;
+                for (var position in validMoves) {
+                  if (position[0] == 5 + coordinates.q &&
+                      position[1] == 5 + coordinates.r) {
+                    isValidMove = true;
+                    break;
+                  } else {
+                    isValidMove = false;
+                  }
                 }
-              }
-              Color? color = whatColor(coordinates);
+                Color? color = whatColor(coordinates);
 
-              // set color for the tile
-              if (isSelected) {
-                color = Colors.green;
-              } else if (isValidMove) {
-                color = Colors.green[300];
-              }
+                // set color for the tile
+                if (isSelected) {
+                  color = Colors.green;
+                } else if (isValidMove) {
+                  color = Colors.green[300];
+                }
 
-              // return a widget for the tile
-              return HexagonWidgetBuilder(
-                  color: color,
-                  padding: 2.0,
-                  cornerRadius: 8.0,
-                  child: GestureDetector(
-                    onTap: () {
-                      pieceSelected(coordinates);
-                    },
-                    child: piece != null
-                        ? Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: Image.asset(
-                              color:
-                                  piece!.isWhite ? Colors.white : Colors.black,
-                              piece!.imagePath,
-                              fit: BoxFit.contain,
-                            ),
-                          )
-                        : null,
-                  ));
-            },
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomLeft,
-          child: SizedBox(
-            height: capturedSize,
-            child: SingleChildScrollView(
-              controller: ScrollController(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (var piece in blackCaptured) Image.asset(piece.imagePath),
-                  if (calculateWorth(blackCaptured, whiteCaptured) < 0)
-                    Text(
-                      "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.black.withOpacity(0.5)),
-                    )
-                ],
-              ),
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.topLeft,
-          child: SizedBox(
-            height: capturedSize,
-            child: SingleChildScrollView(
-              controller: ScrollController(),
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (var piece in whiteCaptured)
-                    Image.asset(
-                      piece.imagePath,
-                      color: Colors.white,
-                    ),
-                  if (calculateWorth(blackCaptured, whiteCaptured) > 0)
-                    Text(
-                      "+${calculateWorth(blackCaptured, whiteCaptured)}",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.black.withOpacity(0.5)),
-                    )
-                ],
-              ),
-            ),
-          ),
-        ),
-        Align(
-            alignment: Alignment.topRight,
-            child: IconButton(
-              icon: Icon(
-                Icons.refresh,
-                color: Colors.black.withOpacity(0.5),
-                size: 60,
-              ),
-              onPressed: () {
-                resetGame();
+                // return a widget for the tile
+                return HexagonWidgetBuilder(
+                    color: color,
+                    padding: 2.0,
+                    cornerRadius: 8.0,
+                    child: GestureDetector(
+                      onTap: () {
+                        pieceSelected(coordinates);
+                      },
+                      child: piece != null
+                          ? Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: Image.asset(
+                                color: piece!.isWhite
+                                    ? Colors.white
+                                    : Colors.black,
+                                piece!.imagePath,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : null,
+                    ));
               },
-            ))
-      ]),
+            ),
+          ),
+          SafeArea(
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: SizedBox(
+                    height: capturedSize,
+                    child: SingleChildScrollView(
+                      controller: ScrollController(),
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (var piece in blackCaptured)
+                            Image.asset(piece.imagePath),
+                          if (calculateWorth(blackCaptured, whiteCaptured) < 0)
+                            Text(
+                              "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black.withOpacity(0.5)),
+                            )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    height: capturedSize,
+                    child: SingleChildScrollView(
+                      controller: ScrollController(),
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (var piece in whiteCaptured)
+                            Image.asset(
+                              piece.imagePath,
+                              color: Colors.white,
+                            ),
+                          if (calculateWorth(blackCaptured, whiteCaptured) > 0)
+                            Text(
+                              "+${calculateWorth(blackCaptured, whiteCaptured)}",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black.withOpacity(0.5)),
+                            )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Column(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          FontAwesomeIcons.arrowsRotate,
+                          color: Colors.black.withOpacity(0.5),
+                          size: 60,
+                        ),
+                        onPressed: () {
+                          resetGame();
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          FontAwesomeIcons.github,
+                          color: Colors.black.withOpacity(0.5),
+                          size: 60,
+                        ),
+                        onPressed: () async {
+                          final Uri url =
+                              Uri.parse('https://github.com/Blasix/chexagon');
+                          if (!await launchUrl(url)) {
+                            throw Exception('Could not launch $url');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
