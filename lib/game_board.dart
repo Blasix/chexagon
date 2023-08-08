@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
@@ -228,7 +226,9 @@ class _GameBoardState extends State<GameBoard> {
               if (board[q2][r2]!.isWhite != piece.isWhite) {
                 canidateMoves.add([q2, r2]); // Capture
               }
-              break;
+              if (board[q2][r2]!.type != ChessPieceType.enPassant) {
+                break;
+              }
             }
             canidateMoves.add([q2, r2]);
             i++;
@@ -286,7 +286,9 @@ class _GameBoardState extends State<GameBoard> {
               if (board[q2][r2]!.isWhite != piece.isWhite) {
                 canidateMoves.add([q2, r2]); // Capture
               }
-              break;
+              if (board[q2][r2]!.type != ChessPieceType.enPassant) {
+                break;
+              }
             }
             canidateMoves.add([q2, r2]);
             i++;
@@ -351,7 +353,9 @@ class _GameBoardState extends State<GameBoard> {
               if (board[q2][r2]!.isWhite != piece.isWhite) {
                 canidateMoves.add([q2, r2]); // Capture
               }
-              break;
+              if (board[q2][r2]!.type != ChessPieceType.enPassant) {
+                break;
+              }
             }
             canidateMoves.add([q2, r2]);
             i++;
@@ -431,20 +435,30 @@ class _GameBoardState extends State<GameBoard> {
 
   // move the piece to the new location
   void movePiece(int q, int r) {
+    int qStart = (selectedCoordinates!.q + 5);
+    int rStart = (selectedCoordinates!.r + 5);
     // if new spot is occupied with enemy piece, capture it
     if (board[q][r] != null) {
-      //add to appropriate list
-      if (board[q][r]!.isWhite) {
-        whiteCaptured.add(board[q][r]!);
+      if (board[q][r]!.type == ChessPieceType.enPassant) {
+        if (selectedPiece!.type == ChessPieceType.pawn) {
+          //add to appropriate list
+          if (selectedPiece!.isWhite) {
+            blackCaptured.add(board[q][r + 1]!);
+            board[q][r + 1] = null;
+          } else {
+            whiteCaptured.add(board[q][r - 1]!);
+            board[q][r - 1] = null;
+          }
+        }
       } else {
-        blackCaptured.add(board[q][r]!);
+        //add to appropriate list
+        if (board[q][r]!.isWhite) {
+          whiteCaptured.add(board[q][r]!);
+        } else {
+          blackCaptured.add(board[q][r]!);
+        }
       }
     }
-
-    // TODO: add en passant, things to do:
-    // check if pawn is moving 2 spaces, then place en passant piece
-    // check if pawn is moving diagonally, then check if en passant piece is there, then capture it
-    // make sure that no other piece can capture en passant piece
 
     // search board for all "enPassant pieces" and remove them
     for (var i = 0; i < board.length; i++) {
@@ -459,8 +473,6 @@ class _GameBoardState extends State<GameBoard> {
 
     // check for pawn
     if (selectedPiece!.type == ChessPieceType.pawn) {
-      //TODO add promotion
-
       // check if pawn is at end of board
       for (int i = 1; i <= 5; i++) {
         if (selectedPiece!.isWhite) {
@@ -481,14 +493,33 @@ class _GameBoardState extends State<GameBoard> {
       }
 
       // check if pawn is moving 2 spaces
+      if (selectedPiece!.isWhite) {
+        if (rStart - 2 == r) {
+          // add en passant piece
+          board[qStart][rStart - 1] = ChessPiece(
+            imagePath: '',
+            isWhite: true,
+            type: ChessPieceType.enPassant,
+          );
+        }
+      } else {
+        if (rStart + 2 == r) {
+          // add en passant piece
+          board[qStart][rStart + 1] = ChessPiece(
+            imagePath: '',
+            isWhite: false,
+            type: ChessPieceType.enPassant,
+          );
+        }
+      }
 
       // move piece and clear the old location
       board[q][r] = selectedPiece;
-      board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+      board[qStart][rStart] = null;
     } else {
       // move piece and clear the old location
       board[q][r] = selectedPiece;
-      board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+      board[qStart][rStart] = null;
     }
 
     // check if king is in check
@@ -749,16 +780,18 @@ class _GameBoardState extends State<GameBoard> {
                         pieceSelected(coordinates);
                       },
                       child: piece != null
-                          ? Padding(
-                              padding: const EdgeInsets.all(5),
-                              child: Image.asset(
-                                color: piece!.isWhite
-                                    ? Colors.white
-                                    : Colors.black,
-                                piece!.imagePath,
-                                fit: BoxFit.contain,
-                              ),
-                            )
+                          ? piece!.type == ChessPieceType.enPassant
+                              ? null
+                              : Padding(
+                                  padding: const EdgeInsets.all(5),
+                                  child: Image.asset(
+                                    color: piece!.isWhite
+                                        ? Colors.white
+                                        : Colors.black,
+                                    piece!.imagePath,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
                           : null,
                     ));
               },
