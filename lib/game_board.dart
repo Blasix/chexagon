@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
@@ -6,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+// TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 
 class GameBoard extends StatefulWidget {
   const GameBoard({super.key});
@@ -176,8 +180,6 @@ class _GameBoardState extends State<GameBoard> {
     // different moves for different color
     int direction = piece.isWhite ? -1 : 1;
 
-    //TODO add promotion
-
     switch (piece.type) {
       case ChessPieceType.pawn:
         // pawn can move forward
@@ -203,7 +205,6 @@ class _GameBoardState extends State<GameBoard> {
             board[q + direction][r]!.isWhite != piece.isWhite) {
           canidateMoves.add([q + direction, r]);
         }
-        // TODO: add en passant
 
         break;
       case ChessPieceType.rook:
@@ -357,7 +358,10 @@ class _GameBoardState extends State<GameBoard> {
           }
         }
         break;
+      case ChessPieceType.enPassant:
+        break;
     }
+
     return canidateMoves;
   }
 
@@ -437,9 +441,55 @@ class _GameBoardState extends State<GameBoard> {
       }
     }
 
-    // move piece and clear the old location
-    board[q][r] = selectedPiece;
-    board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+    // TODO: add en passant, things to do:
+    // check if pawn is moving 2 spaces, then place en passant piece
+    // check if pawn is moving diagonally, then check if en passant piece is there, then capture it
+    // make sure that no other piece can capture en passant piece
+
+    // search board for all "enPassant pieces" and remove them
+    for (var i = 0; i < board.length; i++) {
+      for (var j = 0; j < board[i].length; j++) {
+        if (board[i][j] != null) {
+          if (board[i][j]!.type == ChessPieceType.enPassant) {
+            board[i][j] = null;
+          }
+        }
+      }
+    }
+
+    // check for pawn
+    if (selectedPiece!.type == ChessPieceType.pawn) {
+      //TODO add promotion
+
+      // check if pawn is at end of board
+      for (int i = 1; i <= 5; i++) {
+        if (selectedPiece!.isWhite) {
+          if (q == (i + 5) && r == 0 ||
+              q == (i - 1) && r == (6 - i) ||
+              q == 5 && r == 0) {
+            promotePawn(true, q, r);
+            break;
+          }
+        } else {
+          if (q == (i + 5) && r == (10 - i) ||
+              q == (i - 1) && r == 10 ||
+              q == 5 && r == 10) {
+            promotePawn(false, q, r);
+            break;
+          }
+        }
+      }
+
+      // check if pawn is moving 2 spaces
+
+      // move piece and clear the old location
+      board[q][r] = selectedPiece;
+      board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+    } else {
+      // move piece and clear the old location
+      board[q][r] = selectedPiece;
+      board[selectedCoordinates!.q + 5][selectedCoordinates!.r + 5] = null;
+    }
 
     // check if king is in check
     if (isKingInCheck(!isWhiteTurn)) {
@@ -467,6 +517,7 @@ class _GameBoardState extends State<GameBoard> {
     // check for checkmate
     if (isCheckmate(!isWhiteTurn)) {
       showDialog(
+          barrierDismissible: false,
           context: context,
           builder: (context) => AlertDialog(
                 title: const Text('Checkmate!'),
@@ -556,6 +607,66 @@ class _GameBoardState extends State<GameBoard> {
     selectedPiece = null;
     validMoves.clear();
     setState(() {});
+  }
+
+  // pormote pawn
+  void promotePawn(bool isWhite, int q, int r) {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('Promote!'),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          board[q][r] = ChessPiece(
+                              type: ChessPieceType.queen,
+                              isWhite: isWhite,
+                              imagePath: 'images/queen.png');
+                        });
+
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      },
+                      child: const Text('Queen')),
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          board[q][r] = ChessPiece(
+                              type: ChessPieceType.rook,
+                              isWhite: isWhite,
+                              imagePath: 'images/rook.png');
+                        });
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      },
+                      child: const Text('Rook')),
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          board[q][r] = ChessPiece(
+                              type: ChessPieceType.bishop,
+                              isWhite: isWhite,
+                              imagePath: 'images/bishop.png');
+                        });
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      },
+                      child: const Text('Bishop')),
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          board[q][r] = ChessPiece(
+                              type: ChessPieceType.knight,
+                              isWhite: isWhite,
+                              imagePath: 'images/knight.png');
+                        });
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      },
+                      child: const Text('Knight')),
+                ],
+              ),
+            ));
   }
 
   // declare a variables
