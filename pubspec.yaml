@@ -38,6 +38,8 @@ dependencies:
   hexagon: ^0.2.0
   url_launcher: ^6.1.12
   font_awesome_flutter: ^10.5.0
+  assorted_layout_widgets: ^8.0.4
+  simple_shadow: ^0.3.1
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,4 @@
+import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
@@ -5,6 +6,7 @@ import 'package:chexagon/helper/piece_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexagon/hexagon.dart';
+import 'package:simple_shadow/simple_shadow.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
@@ -22,6 +24,16 @@ class _GameBoardState extends State<GameBoard> {
   // with each position possibly containing a chess piece
   late List<List<ChessPiece?>> board;
 
+  // Map of image paths for each piece type
+  final Map<ChessPieceType, String> _imagePaths = {
+    ChessPieceType.pawn: 'images/pawn.png',
+    ChessPieceType.rook: 'images/rook.png',
+    ChessPieceType.knight: 'images/knight.png',
+    ChessPieceType.bishop: 'images/bishop.png',
+    ChessPieceType.queen: 'images/queen.png',
+    ChessPieceType.king: 'images/king.png',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -37,12 +49,12 @@ class _GameBoardState extends State<GameBoard> {
     ChessPiece bPawn = ChessPiece(
       type: ChessPieceType.pawn,
       isWhite: false,
-      imagePath: 'images/pawn.png',
+      imagePath: _imagePaths[ChessPieceType.pawn]!,
     );
     ChessPiece wPawn = ChessPiece(
       type: ChessPieceType.pawn,
       isWhite: true,
-      imagePath: 'images/pawn.png',
+      imagePath: _imagePaths[ChessPieceType.pawn]!,
     );
     for (int i = 1; i <= 5; i++) {
       newBoard[i][4] = bPawn;
@@ -61,12 +73,12 @@ class _GameBoardState extends State<GameBoard> {
     ChessPiece bRook = ChessPiece(
       type: ChessPieceType.rook,
       isWhite: false,
-      imagePath: 'images/rook.png',
+      imagePath: _imagePaths[ChessPieceType.rook]!,
     );
     ChessPiece wRook = ChessPiece(
       type: ChessPieceType.rook,
       isWhite: true,
-      imagePath: 'images/rook.png',
+      imagePath: _imagePaths[ChessPieceType.rook]!,
     );
     newBoard[2][3] = bRook;
     newBoard[8][0] = bRook;
@@ -77,12 +89,12 @@ class _GameBoardState extends State<GameBoard> {
     ChessPiece bKnight = ChessPiece(
       type: ChessPieceType.knight,
       isWhite: false,
-      imagePath: 'images/knight.png',
+      imagePath: _imagePaths[ChessPieceType.knight]!,
     );
     ChessPiece wKnight = ChessPiece(
       type: ChessPieceType.knight,
       isWhite: true,
-      imagePath: 'images/knight.png',
+      imagePath: _imagePaths[ChessPieceType.knight]!,
     );
     newBoard[3][2] = bKnight;
     newBoard[7][0] = bKnight;
@@ -93,12 +105,12 @@ class _GameBoardState extends State<GameBoard> {
     ChessPiece bBishop = ChessPiece(
       type: ChessPieceType.bishop,
       isWhite: false,
-      imagePath: 'images/bishop.png',
+      imagePath: _imagePaths[ChessPieceType.bishop]!,
     );
     ChessPiece wBishop = ChessPiece(
       type: ChessPieceType.bishop,
       isWhite: true,
-      imagePath: 'images/bishop.png',
+      imagePath: _imagePaths[ChessPieceType.bishop]!,
     );
     for (int i = 0; i <= 2; i++) {
       newBoard[5][i] = bBishop;
@@ -109,24 +121,24 @@ class _GameBoardState extends State<GameBoard> {
     newBoard[4][1] = ChessPiece(
       type: ChessPieceType.queen,
       isWhite: false,
-      imagePath: 'images/queen.png',
+      imagePath: _imagePaths[ChessPieceType.queen]!,
     );
     newBoard[4][10] = ChessPiece(
       type: ChessPieceType.queen,
       isWhite: true,
-      imagePath: 'images/queen.png',
+      imagePath: _imagePaths[ChessPieceType.queen]!,
     );
 
     // place king
     newBoard[6][0] = ChessPiece(
       type: ChessPieceType.king,
       isWhite: false,
-      imagePath: 'images/king.png',
+      imagePath: _imagePaths[ChessPieceType.king]!,
     );
     newBoard[6][9] = ChessPiece(
       type: ChessPieceType.king,
       isWhite: true,
-      imagePath: 'images/king.png',
+      imagePath: _imagePaths[ChessPieceType.king]!,
     );
 
     board = newBoard;
@@ -649,7 +661,7 @@ class _GameBoardState extends State<GameBoard> {
           ChessPiece(
               type: ChessPieceType.pawn,
               isWhite: true,
-              imagePath: 'images/pawn.png'),
+              imagePath: _imagePaths[ChessPieceType.pawn]!),
         );
         blackCaptured.add(
           ChessPiece(type: type, isWhite: false, imagePath: ''),
@@ -659,7 +671,7 @@ class _GameBoardState extends State<GameBoard> {
           ChessPiece(
               type: ChessPieceType.pawn,
               isWhite: false,
-              imagePath: 'images/pawn.png'),
+              imagePath: _imagePaths[ChessPieceType.pawn]!),
         );
         whiteCaptured.add(
           ChessPiece(type: type, isWhite: true, imagePath: ''),
@@ -682,7 +694,7 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.queen,
                               isWhite: isWhite,
-                              imagePath: 'images/queen.png');
+                              imagePath: _imagePaths[ChessPieceType.queen]!);
                         });
                         addToCaptured(ChessPieceType.queen);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -694,7 +706,7 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.rook,
                               isWhite: isWhite,
-                              imagePath: 'images/rook.png');
+                              imagePath: _imagePaths[ChessPieceType.rook]!);
                         });
                         addToCaptured(ChessPieceType.rook);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -706,7 +718,7 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.bishop,
                               isWhite: isWhite,
-                              imagePath: 'images/bishop.png');
+                              imagePath: _imagePaths[ChessPieceType.bishop]!);
                         });
                         addToCaptured(ChessPieceType.bishop);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -718,7 +730,7 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.knight,
                               isWhite: isWhite,
-                              imagePath: 'images/knight.png');
+                              imagePath: _imagePaths[ChessPieceType.knight]!);
                         });
                         addToCaptured(ChessPieceType.knight);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -751,6 +763,43 @@ class _GameBoardState extends State<GameBoard> {
 
   // A list of black pieces that have been captured
   List<ChessPiece> blackCaptured = [];
+
+  Widget buildCapturedRow(List<ChessPiece> capturedPieces) {
+    List<List<ChessPiece>> rows = [];
+    for (var piece in capturedPieces) {
+      bool addedToRow = false;
+      for (List<ChessPiece> row in rows) {
+        if (row.isNotEmpty && row.first.type == piece.type) {
+          row.add(piece);
+          addedToRow = true;
+          break;
+        }
+      }
+      if (!addedToRow && piece.imagePath != '') {
+        rows.add([piece]);
+      }
+    }
+    return RowSuper(
+      innerDistance: -10,
+      children: [
+        for (var list in rows)
+          RowSuper(
+            innerDistance: -40,
+            children: [
+              for (var piece in list)
+                SimpleShadow(
+                  color: piece.isWhite ? Colors.black : Colors.white,
+                  offset: const Offset(0, 0),
+                  child: Image.asset(
+                    piece.imagePath,
+                    color: piece.isWhite ? Colors.white : Colors.black,
+                  ),
+                ),
+            ],
+          ),
+      ],
+    );
+  }
 
   // sized of captured rows
   double? capturedSize = 60;
@@ -838,9 +887,7 @@ class _GameBoardState extends State<GameBoard> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          for (var piece in blackCaptured)
-                            if (piece.imagePath != '')
-                              Image.asset(piece.imagePath),
+                          buildCapturedRow(blackCaptured),
                           if (calculateWorth(blackCaptured, whiteCaptured) < 0)
                             Text(
                               "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
@@ -848,7 +895,7 @@ class _GameBoardState extends State<GameBoard> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
                                   color: Colors.black.withOpacity(0.5)),
-                            )
+                            ),
                         ],
                       ),
                     ),
@@ -863,12 +910,7 @@ class _GameBoardState extends State<GameBoard> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          for (var piece in whiteCaptured)
-                            if (piece.imagePath != '')
-                              Image.asset(
-                                piece.imagePath,
-                                color: Colors.white,
-                              ),
+                          buildCapturedRow(whiteCaptured),
                           if (calculateWorth(blackCaptured, whiteCaptured) > 0)
                             Text(
                               "+${calculateWorth(blackCaptured, whiteCaptured)}",
@@ -876,7 +918,7 @@ class _GameBoardState extends State<GameBoard> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
                                   color: Colors.black.withOpacity(0.5)),
-                            )
+                            ),
                         ],
                       ),
                     ),
