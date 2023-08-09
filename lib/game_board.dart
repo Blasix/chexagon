@@ -8,6 +8,7 @@ import 'package:hexagon/hexagon.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
+// TODO: make captured lists automagicly calcalated based on board
 
 class GameBoard extends StatefulWidget {
   const GameBoard({super.key});
@@ -642,6 +643,31 @@ class _GameBoardState extends State<GameBoard> {
 
   // pormote pawn
   void promotePawn(bool isWhite, int q, int r) {
+    void addToCaptured(ChessPieceType type) {
+      if (isWhite) {
+        whiteCaptured.add(
+          ChessPiece(
+              type: ChessPieceType.pawn,
+              isWhite: true,
+              imagePath: 'images/pawn.png'),
+        );
+        blackCaptured.add(
+          ChessPiece(type: type, isWhite: false, imagePath: ''),
+        );
+      } else {
+        blackCaptured.add(
+          ChessPiece(
+              type: ChessPieceType.pawn,
+              isWhite: false,
+              imagePath: 'images/pawn.png'),
+        );
+        whiteCaptured.add(
+          ChessPiece(type: type, isWhite: true, imagePath: ''),
+        );
+      }
+      // return;
+    }
+
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -658,7 +684,7 @@ class _GameBoardState extends State<GameBoard> {
                               isWhite: isWhite,
                               imagePath: 'images/queen.png');
                         });
-
+                        addToCaptured(ChessPieceType.queen);
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Queen')),
@@ -670,6 +696,7 @@ class _GameBoardState extends State<GameBoard> {
                               isWhite: isWhite,
                               imagePath: 'images/rook.png');
                         });
+                        addToCaptured(ChessPieceType.rook);
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Rook')),
@@ -681,6 +708,7 @@ class _GameBoardState extends State<GameBoard> {
                               isWhite: isWhite,
                               imagePath: 'images/bishop.png');
                         });
+                        addToCaptured(ChessPieceType.bishop);
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Bishop')),
@@ -692,6 +720,7 @@ class _GameBoardState extends State<GameBoard> {
                               isWhite: isWhite,
                               imagePath: 'images/knight.png');
                         });
+                        addToCaptured(ChessPieceType.knight);
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Knight')),
@@ -810,7 +839,8 @@ class _GameBoardState extends State<GameBoard> {
                       child: Row(
                         children: [
                           for (var piece in blackCaptured)
-                            Image.asset(piece.imagePath),
+                            if (piece.imagePath != '')
+                              Image.asset(piece.imagePath),
                           if (calculateWorth(blackCaptured, whiteCaptured) < 0)
                             Text(
                               "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
@@ -834,10 +864,11 @@ class _GameBoardState extends State<GameBoard> {
                       child: Row(
                         children: [
                           for (var piece in whiteCaptured)
-                            Image.asset(
-                              piece.imagePath,
-                              color: Colors.white,
-                            ),
+                            if (piece.imagePath != '')
+                              Image.asset(
+                                piece.imagePath,
+                                color: Colors.white,
+                              ),
                           if (calculateWorth(blackCaptured, whiteCaptured) > 0)
                             Text(
                               "+${calculateWorth(blackCaptured, whiteCaptured)}",
