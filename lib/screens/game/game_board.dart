@@ -9,6 +9,8 @@ import 'package:hexagon/hexagon.dart';
 import 'package:simple_shadow/simple_shadow.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../consts/colors.dart';
+
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 // TODO: make captured lists automagicly calcalated based on board
 
@@ -819,7 +821,7 @@ class _GameBoardState extends State<GameBoard> {
         MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      backgroundColor: Colors.grey[500],
+      backgroundColor: bgColor,
       body: Stack(
         children: [
           Center(

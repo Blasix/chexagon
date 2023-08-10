@@ -1,34 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:hexagon/hexagon.dart';
 
-Color? white = Colors.grey[400];
-Color? grey = Colors.grey[600];
-Color? black = Colors.grey[800];
+import '../consts/colors.dart';
 
 Color? whatColor(Coordinates coordinates) {
   if (coordinates.q % 3 == 0) {
     if (coordinates.r % 3 == 0) {
-      return grey;
+      return gameGrey;
     } else if (coordinates.r % 3 == 1) {
-      return black;
+      return gameBlack;
     } else {
-      return white;
+      return gameWhite;
     }
   } else if (coordinates.q % 3 == 1) {
     if (coordinates.r % 3 == 0) {
-      return white;
+      return gameWhite;
     } else if (coordinates.r % 3 == 1) {
-      return grey;
+      return gameGrey;
     } else {
-      return black;
+      return gameBlack;
     }
   } else {
     if (coordinates.r % 3 == 0) {
-      return black;
+      return gameBlack;
     } else if (coordinates.r % 3 == 1) {
-      return white;
+      return gameWhite;
     } else {
-      return grey;
+      return gameGrey;
     }
   }
 }

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "662200938939",
+    "project_id": "chexagon-b0212",
+    "storage_bucket": "chexagon-b0212.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:662200938939:android:4194eaa47bbaea17d4549e",
+        "android_client_info": {
+          "package_name": "com.blasix.chexagon"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "662200938939-b1b1vfmluq9feq8ei27pkpr87iuq146f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAO8p0DBkXYKAP89NSoh_I4l_aiV8uVL78"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "662200938939-b1b1vfmluq9feq8ei27pkpr87iuq146f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
