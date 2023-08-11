@@ -15,8 +15,8 @@ import '../../consts/colors.dart';
 // TODO: make captured lists automagicly calcalated based on board
 
 class GameBoard extends StatefulWidget {
-  const GameBoard({super.key, required this.isLocal});
-  final bool isLocal;
+  const GameBoard({super.key, required this.gameID});
+  final String gameID;
 
   @override
   State<GameBoard> createState() => _GameBoardState();
@@ -810,6 +810,7 @@ class _GameBoardState extends State<GameBoard> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.gameID);
     // sort captured pieces by type
     whiteCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));

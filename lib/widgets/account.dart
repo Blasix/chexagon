@@ -1,6 +1,6 @@
-import 'package:chexagon/screens/auth/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 void showAccountDialog(BuildContext context) {
   if (FirebaseAuth.instance.currentUser == null) {
@@ -15,12 +15,7 @@ void showAccountDialog(BuildContext context) {
               TextButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
+                    context.go('/login');
                     FirebaseAuth.instance.signOut();
                   },
                   child: const Text('Logout')),

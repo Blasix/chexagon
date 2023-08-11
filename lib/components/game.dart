@@ -1,6 +1,8 @@
 import 'package:chexagon/components/piece.dart';
 
 class Game {
+  final String id;
+  final bool isLocal;
   final DateTime startedAt;
   final List<List<ChessPiece?>> board;
   final bool isWhiteTurn;
@@ -10,6 +12,8 @@ class Game {
   final List<ChessPiece> blackCaptured;
 
   Game({
+    required this.id,
+    required this.isLocal,
     required this.startedAt,
     required this.board,
     required this.isWhiteTurn,
