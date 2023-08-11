@@ -1,6 +1,8 @@
 import 'package:chexagon/screens/auth/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
@@ -52,6 +54,7 @@ class RegisterScreen extends HookConsumerWidget {
                             decoration: const InputDecoration(
                               hintText: 'Name',
                             ),
+                            validator: ValidationBuilder().build(),
                           ),
                           TextFormField(
                             controller: emailController,
@@ -59,6 +62,10 @@ class RegisterScreen extends HookConsumerWidget {
                             decoration: const InputDecoration(
                               hintText: 'Email',
                             ),
+                            validator: ValidationBuilder()
+                                .email()
+                                .maxLength(50)
+                                .build(),
                           ),
                           TextFormField(
                             controller: passwordController,
@@ -66,6 +73,14 @@ class RegisterScreen extends HookConsumerWidget {
                             decoration: const InputDecoration(
                               hintText: 'Password',
                             ),
+                            validator: ValidationBuilder()
+                                .minLength(6)
+                                .maxLength(20)
+                                .regExp(RegExp('(?=.*?[A-Z])'),
+                                    'Must contain at least one uppercase letter')
+                                .regExp(RegExp('(?=.*?[0-9])'),
+                                    'Must contain at least one number')
+                                .build(),
                           ),
                           TextFormField(
                             controller: confirmPasswordController,
@@ -73,19 +88,49 @@ class RegisterScreen extends HookConsumerWidget {
                             decoration: const InputDecoration(
                               hintText: 'Confirm Password',
                             ),
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'The field is required';
+                              }
+                              if (confirmPasswordController.text !=
+                                  passwordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const GameSelect(),
-                          ),
-                        );
+                      onPressed: () async {
+                        final isValid = formKey.currentState!.validate();
+                        FocusScope.of(context).unfocus();
+                        if (isValid) {
+                          try {
+                            final userCredential = await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                    email: emailController.text
+                                        .toLowerCase()
+                                        .trim(),
+                                    password: passwordController.text.trim());
+                            final user = userCredential.user;
+                            await user?.updateDisplayName(nameController.text);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const GameSelect(),
+                              ),
+                            );
+                          } on FirebaseException catch (error) {
+                            print(error.message);
+                            return;
+                          } catch (error) {
+                            print(error);
+                            return;
+                          }
+                        }
                       },
                       child: const Text('Register'),
                     ),

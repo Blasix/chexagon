@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
@@ -9,6 +12,10 @@ class LoginScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final formKey = useMemoized(GlobalKey<FormState>.new);
+    final emailController = useTextEditingController();
+    final passwordController = useTextEditingController();
+
     return Scaffold(
       backgroundColor: bgColor,
       body: Center(
@@ -35,32 +42,57 @@ class LoginScreen extends HookConsumerWidget {
                       ),
                     ),
                     Form(
+                      key: formKey,
                       child: Column(
                         children: [
                           TextFormField(
+                            controller: emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
                               hintText: 'Email',
                             ),
+                            validator: ValidationBuilder()
+                                .email()
+                                .maxLength(50)
+                                .build(),
                           ),
                           TextFormField(
+                            controller: passwordController,
                             obscureText: true,
                             decoration: const InputDecoration(
                               hintText: 'Password',
                             ),
+                            validator: ValidationBuilder().build(),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const GameSelect(),
-                          ),
-                        );
+                      onPressed: () async {
+                        final isValid = formKey.currentState!.validate();
+                        FocusScope.of(context).unfocus();
+                        if (isValid) {
+                          try {
+                            await FirebaseAuth.instance
+                                .signInWithEmailAndPassword(
+                              email: emailController.text.toLowerCase().trim(),
+                              password: passwordController.text.trim(),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const GameSelect(),
+                              ),
+                            );
+                          } on FirebaseException catch (error) {
+                            print(error.message);
+                            return;
+                          } catch (error) {
+                            print(error);
+                            return;
+                          }
+                        }
                       },
                       child: const Text('Login'),
                     ),

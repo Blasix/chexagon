@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../consts/colors.dart';
+import '../../widgets/account.dart';
 import 'game_board.dart';
 
 class GameSelect extends StatelessWidget {
@@ -13,11 +14,15 @@ class GameSelect extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            const Align(
+            Align(
               alignment: Alignment.topRight,
               child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircleAvatar(),
+                padding: const EdgeInsets.all(8.0),
+                child: GestureDetector(
+                    onTap: () {
+                      showAccountDialog(context);
+                    },
+                    child: const CircleAvatar()),
               ),
             ),
             Center(
