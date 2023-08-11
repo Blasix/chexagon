@@ -1,10 +1,10 @@
-import 'package:chexagon/screens/auth/login.dart';
+import 'package:chexagon/screens/auth/register.dart';
+import 'package:chexagon/screens/game/game_select.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'firebase_options.dart';
-import 'screens/game/game_board.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,8 +40,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: FirebaseAuth.instance.currentUser == null
-          ? const LoginScreen()
-          : const GameBoard(),
+          ? const RegisterScreen()
+          : const GameSelect(),
     );
   }
 }

@@ -15,7 +15,8 @@ import '../../consts/colors.dart';
 // TODO: make captured lists automagicly calcalated based on board
 
 class GameBoard extends StatefulWidget {
-  const GameBoard({super.key});
+  const GameBoard({super.key, required this.isLocal});
+  final bool isLocal;
 
   @override
   State<GameBoard> createState() => _GameBoardState();
@@ -767,6 +768,7 @@ class _GameBoardState extends State<GameBoard> {
   List<ChessPiece> blackCaptured = [];
 
   Widget buildCapturedRow(List<ChessPiece> capturedPieces) {
+    // widget.isLocal
     List<List<ChessPiece>> rows = [];
     for (var piece in capturedPieces) {
       bool addedToRow = false;
