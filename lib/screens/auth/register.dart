@@ -1,17 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
+import '../../helper/message_helper.dart';
 
-class RegisterScreen extends HookConsumerWidget {
+class RegisterScreen extends HookWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final nameController = useTextEditingController();
     final emailController = useTextEditingController();
@@ -117,14 +118,25 @@ class RegisterScreen extends HookConsumerWidget {
                                           .trim(),
                                       password: passwordController.text.trim());
                               final user = userCredential.user;
-                              await user
-                                  ?.updateDisplayName(nameController.text);
+                              final uid = user!.uid;
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(uid)
+                                  .set({
+                                'id': uid,
+                                'username': nameController.text,
+                                'email': emailController.text,
+                                'pfpUrl': '',
+                                'createdAt': Timestamp.now(),
+                              });
+                              showSuccesSnackbar(
+                                  context, 'Succesfully registered!');
                               context.go('/');
                             } on FirebaseException catch (error) {
-                              print(error.message);
+                              showErrorSnackbar(context, error.message);
                               return;
                             } catch (error) {
-                              print(error);
+                              showErrorSnackbar(context, error.toString());
                               return;
                             }
                           }

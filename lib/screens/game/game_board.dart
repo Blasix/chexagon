@@ -13,6 +13,7 @@ import '../../consts/colors.dart';
 
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 // TODO: make captured lists automagicly calcalated based on board
+// TODO: checkmate not working
 
 class GameBoard extends StatefulWidget {
   const GameBoard({super.key, required this.gameID});
@@ -627,7 +628,6 @@ class _GameBoardState extends State<GameBoard> {
 
         List<List<int>> pieceValidMoves =
             calculateRealValidMoves(i, j, board[i][j]!, false);
-
         // if piece has no valid moves, its not checkmate
         if (pieceValidMoves.isNotEmpty) {
           return false;

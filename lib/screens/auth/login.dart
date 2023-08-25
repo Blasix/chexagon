@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
+import '../../helper/message_helper.dart';
 
-class LoginScreen extends HookConsumerWidget {
+class LoginScreen extends HookWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
@@ -81,13 +81,17 @@ class LoginScreen extends HookConsumerWidget {
                                 email:
                                     emailController.text.toLowerCase().trim(),
                                 password: passwordController.text.trim(),
-                              );
-                              context.go('/');
+                              )
+                                  .then((value) {
+                                showSuccesSnackbar(
+                                    context, 'Login successful!');
+                                context.go('/');
+                              });
                             } on FirebaseException catch (error) {
-                              print(error.message);
+                              showErrorSnackbar(context, error.message);
                               return;
                             } catch (error) {
-                              print(error);
+                              showErrorSnackbar(context, error.toString());
                               return;
                             }
                           }

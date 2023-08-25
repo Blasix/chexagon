@@ -4,12 +4,10 @@ import 'package:chexagon/screens/game/game_board.dart';
 import 'package:chexagon/screens/game/game_select.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'nonweb_url_strategy.dart'
-    if (dart.library.html) 'web_url_strategy.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
 
@@ -44,7 +42,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  configureUrl();
+  setPathUrlStrategy();
   runApp(const ProviderScope(child: MyApp()));
 }
 

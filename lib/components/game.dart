@@ -1,6 +1,6 @@
 import 'package:chexagon/components/piece.dart';
 
-class Game {
+class GameModel {
   final String id;
   final bool isLocal;
   final DateTime startedAt;
@@ -11,7 +11,7 @@ class Game {
   final List<ChessPiece> whiteCaptured;
   final List<ChessPiece> blackCaptured;
 
-  Game({
+  GameModel({
     required this.id,
     required this.isLocal,
     required this.startedAt,

@@ -1,3 +1,0 @@
-void configureUrl() {
-  // No-op.
-}
