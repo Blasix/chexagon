@@ -1,9 +1,12 @@
 import 'package:chexagon/components/user.dart';
+import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components/piece.dart';
 import '../../consts/colors.dart';
 import '../../widgets/account.dart';
 
@@ -85,7 +88,21 @@ class GameSelect extends HookWidget {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  FirebaseFirestore.instance
+                                      .collection('games')
+                                      .add({
+                                    'player1': currentUser!.id,
+                                    'player2': '',
+                                    'startedAt': DateTime.now(),
+                                    'board':
+                                        convertBoardToListOfMaps(initBoard()),
+                                    'isWhiteTurn': true,
+                                    'whiteCaptured': [],
+                                    'blackCaptured': [],
+                                  }).then((value) =>
+                                          context.go('/game:${value.id}'));
+                                },
                                 child: const Text('Multiplayer'),
                               ),
                             ),

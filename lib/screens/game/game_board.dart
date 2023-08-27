@@ -10,6 +10,7 @@ import 'package:simple_shadow/simple_shadow.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../consts/colors.dart';
+import '../../consts/images.dart';
 
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 // TODO: make captured lists automagicly calcalated based on board
@@ -28,125 +29,13 @@ class _GameBoardState extends State<GameBoard> {
   // with each position possibly containing a chess piece
   late List<List<ChessPiece?>> board;
 
-  // Map of image paths for each piece type
-  final Map<ChessPieceType, String> _imagePaths = {
-    ChessPieceType.pawn: 'images/pawn.png',
-    ChessPieceType.rook: 'images/rook.png',
-    ChessPieceType.knight: 'images/knight.png',
-    ChessPieceType.bishop: 'images/bishop.png',
-    ChessPieceType.queen: 'images/queen.png',
-    ChessPieceType.king: 'images/king.png',
-  };
-
   @override
   void initState() {
     super.initState();
-    _initBoard();
+    board = initBoard();
   }
 
   // initialize board
-  void _initBoard() {
-    List<List<ChessPiece?>> newBoard =
-        List.generate(11, (_) => List.filled(11, null));
-
-    // place pawns
-    ChessPiece bPawn = ChessPiece(
-      type: ChessPieceType.pawn,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.pawn]!,
-    );
-    ChessPiece wPawn = ChessPiece(
-      type: ChessPieceType.pawn,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.pawn]!,
-    );
-    for (int i = 1; i <= 5; i++) {
-      newBoard[i][4] = bPawn;
-    }
-    for (int i = 1; i <= 4; i++) {
-      newBoard[5 + i][4 - i] = bPawn;
-    }
-    for (int i = 1; i <= 5; i++) {
-      newBoard[4 + i][6] = wPawn;
-    }
-    for (int i = 1; i <= 4; i++) {
-      newBoard[i][11 - i] = wPawn;
-    }
-
-    // place rooks
-    ChessPiece bRook = ChessPiece(
-      type: ChessPieceType.rook,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.rook]!,
-    );
-    ChessPiece wRook = ChessPiece(
-      type: ChessPieceType.rook,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.rook]!,
-    );
-    newBoard[2][3] = bRook;
-    newBoard[8][0] = bRook;
-    newBoard[2][10] = wRook;
-    newBoard[8][7] = wRook;
-
-    // place knights
-    ChessPiece bKnight = ChessPiece(
-      type: ChessPieceType.knight,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.knight]!,
-    );
-    ChessPiece wKnight = ChessPiece(
-      type: ChessPieceType.knight,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.knight]!,
-    );
-    newBoard[3][2] = bKnight;
-    newBoard[7][0] = bKnight;
-    newBoard[3][10] = wKnight;
-    newBoard[7][8] = wKnight;
-
-    // place bishops
-    ChessPiece bBishop = ChessPiece(
-      type: ChessPieceType.bishop,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.bishop]!,
-    );
-    ChessPiece wBishop = ChessPiece(
-      type: ChessPieceType.bishop,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.bishop]!,
-    );
-    for (int i = 0; i <= 2; i++) {
-      newBoard[5][i] = bBishop;
-      newBoard[5][10 - i] = wBishop;
-    }
-
-    // place queen
-    newBoard[4][1] = ChessPiece(
-      type: ChessPieceType.queen,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.queen]!,
-    );
-    newBoard[4][10] = ChessPiece(
-      type: ChessPieceType.queen,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.queen]!,
-    );
-
-    // place king
-    newBoard[6][0] = ChessPiece(
-      type: ChessPieceType.king,
-      isWhite: false,
-      imagePath: _imagePaths[ChessPieceType.king]!,
-    );
-    newBoard[6][9] = ChessPiece(
-      type: ChessPieceType.king,
-      isWhite: true,
-      imagePath: _imagePaths[ChessPieceType.king]!,
-    );
-
-    board = newBoard;
-  }
 
   // user selects a piece
   void pieceSelected(Coordinates coordinates) {
@@ -642,7 +531,7 @@ class _GameBoardState extends State<GameBoard> {
   // reset the game
   void resetGame() {
     if (Navigator.canPop(context)) Navigator.pop(context);
-    _initBoard();
+    initBoard();
     checkStatus = false;
     whiteKingPosition = [6, 9];
     blackKingPosition = [6, 0];
@@ -664,7 +553,7 @@ class _GameBoardState extends State<GameBoard> {
           ChessPiece(
               type: ChessPieceType.pawn,
               isWhite: true,
-              imagePath: _imagePaths[ChessPieceType.pawn]!),
+              imagePath: pieceImagePaths[ChessPieceType.pawn]!),
         );
         blackCaptured.add(
           ChessPiece(type: type, isWhite: false, imagePath: ''),
@@ -674,7 +563,7 @@ class _GameBoardState extends State<GameBoard> {
           ChessPiece(
               type: ChessPieceType.pawn,
               isWhite: false,
-              imagePath: _imagePaths[ChessPieceType.pawn]!),
+              imagePath: pieceImagePaths[ChessPieceType.pawn]!),
         );
         whiteCaptured.add(
           ChessPiece(type: type, isWhite: true, imagePath: ''),
@@ -697,7 +586,8 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.queen,
                               isWhite: isWhite,
-                              imagePath: _imagePaths[ChessPieceType.queen]!);
+                              imagePath:
+                                  pieceImagePaths[ChessPieceType.queen]!);
                         });
                         addToCaptured(ChessPieceType.queen);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -709,7 +599,7 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.rook,
                               isWhite: isWhite,
-                              imagePath: _imagePaths[ChessPieceType.rook]!);
+                              imagePath: pieceImagePaths[ChessPieceType.rook]!);
                         });
                         addToCaptured(ChessPieceType.rook);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -721,7 +611,8 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.bishop,
                               isWhite: isWhite,
-                              imagePath: _imagePaths[ChessPieceType.bishop]!);
+                              imagePath:
+                                  pieceImagePaths[ChessPieceType.bishop]!);
                         });
                         addToCaptured(ChessPieceType.bishop);
                         if (Navigator.canPop(context)) Navigator.pop(context);
@@ -733,7 +624,8 @@ class _GameBoardState extends State<GameBoard> {
                           board[q][r] = ChessPiece(
                               type: ChessPieceType.knight,
                               isWhite: isWhite,
-                              imagePath: _imagePaths[ChessPieceType.knight]!);
+                              imagePath:
+                                  pieceImagePaths[ChessPieceType.knight]!);
                         });
                         addToCaptured(ChessPieceType.knight);
                         if (Navigator.canPop(context)) Navigator.pop(context);
