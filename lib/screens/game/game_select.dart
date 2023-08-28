@@ -1,14 +1,16 @@
 import 'package:chexagon/components/user.dart';
-import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/services/user_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../components/piece.dart';
 import '../../consts/colors.dart';
 import '../../widgets/account.dart';
+import '../../widgets/game.dart';
+
+final toggleButtonsSelectionProvider = Provider((ref) {
+  return List.generate(3, (_) => false);
+});
 
 class GameSelect extends HookWidget {
   const GameSelect({super.key});
@@ -77,7 +79,8 @@ class GameSelect extends HookWidget {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  context.go('/game:local');
+                                  showGameCreationDialog(
+                                      context, currentUser!, true);
                                 },
                                 child: const Text('Local 1v1'),
                               ),
@@ -89,19 +92,8 @@ class GameSelect extends HookWidget {
                               width: double.infinity,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  FirebaseFirestore.instance
-                                      .collection('games')
-                                      .add({
-                                    'player1': currentUser!.id,
-                                    'player2': '',
-                                    'startedAt': DateTime.now(),
-                                    'board':
-                                        convertBoardToListOfMaps(initBoard()),
-                                    'isWhiteTurn': true,
-                                    'whiteCaptured': [],
-                                    'blackCaptured': [],
-                                  }).then((value) =>
-                                          context.go('/game:${value.id}'));
+                                  showGameCreationDialog(
+                                      context, currentUser!, false);
                                 },
                                 child: const Text('Multiplayer'),
                               ),
