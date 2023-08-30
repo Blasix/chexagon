@@ -1,3 +1,5 @@
+<img align="right" height="100" src="images/chexagon_logo.png">
+
 # Chexagon
 
 This game is based on chess but it is not played on a square grid but with hexagons. Hexagon chess can be played under multiple rules. for this project i used [Gliński's hexagonal chess](https://en.wikipedia.org/wiki/Hexagonal_chess). for wich the rules are mostly the same as normal chess but with changes for the hexagons and removing castling
