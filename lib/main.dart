@@ -13,8 +13,7 @@ import 'firebase_options.dart';
 
 // GoRouter configuration
 final _router = GoRouter(
-  initialLocation:
-      FirebaseAuth.instance.currentUser == null ? '/register' : '/',
+  initialLocation: FirebaseAuth.instance.currentUser == null ? '/login' : '/',
   routes: [
     GoRoute(
       path: '/',

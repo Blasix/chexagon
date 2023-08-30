@@ -4,20 +4,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
 import '../../helper/message_helper.dart';
 
-class RegisterScreen extends HookWidget {
+final _obscureProvider = StateProvider((ref) => true);
+
+Future<void> register(
+    BuildContext context,
+    GlobalKey<FormState> formKey,
+    TextEditingController nameController,
+    TextEditingController emailController,
+    TextEditingController passwordController,
+    TextEditingController confirmPasswordController) async {
+  final isValid = formKey.currentState!.validate();
+  FocusScope.of(context).unfocus();
+  if (isValid) {
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: emailController.text.toLowerCase().trim(),
+              password: passwordController.text.trim());
+      final user = userCredential.user;
+      final uid = user!.uid;
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'id': uid,
+        'username': nameController.text,
+        'email': emailController.text,
+        'pfpUrl': '',
+        'createdAt': Timestamp.now(),
+      });
+      showSuccesSnackbar(context, 'Succesfully registered!');
+      context.go('/');
+    } on FirebaseException catch (error) {
+      showErrorSnackbar(context, error.message);
+      return;
+    } catch (error) {
+      showErrorSnackbar(context, error.toString());
+      return;
+    }
+  }
+}
+
+class RegisterScreen extends HookConsumerWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final nameController = useTextEditingController();
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final confirmPasswordController = useTextEditingController();
+    final emailFocusNode = useFocusNode();
+    final passwordFocusNode = useFocusNode();
+    final confirmPasswordFocusNode = useFocusNode();
+    StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
+    final isObscure = ref.watch(_obscureProvider);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -52,6 +96,8 @@ class RegisterScreen extends HookWidget {
                           children: [
                             TextFormField(
                               controller: nameController,
+                              onEditingComplete: () =>
+                                  emailFocusNode.requestFocus(),
                               keyboardType: TextInputType.name,
                               decoration: const InputDecoration(
                                 hintText: 'Name',
@@ -60,6 +106,9 @@ class RegisterScreen extends HookWidget {
                             ),
                             TextFormField(
                               controller: emailController,
+                              focusNode: emailFocusNode,
+                              onEditingComplete: () =>
+                                  passwordFocusNode.requestFocus(),
                               keyboardType: TextInputType.emailAddress,
                               decoration: const InputDecoration(
                                 hintText: 'Email',
@@ -71,9 +120,22 @@ class RegisterScreen extends HookWidget {
                             ),
                             TextFormField(
                               controller: passwordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(
+                              focusNode: passwordFocusNode,
+                              onEditingComplete: () =>
+                                  confirmPasswordFocusNode.requestFocus(),
+                              obscureText: isObscure,
+                              decoration: InputDecoration(
                                 hintText: 'Password',
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    obscure.state = !obscure.state;
+                                  },
+                                  icon: isObscure
+                                      ? const Icon(Icons.visibility,
+                                          color: Colors.grey)
+                                      : const Icon(Icons.visibility_off,
+                                          color: Colors.grey),
+                                ),
                               ),
                               validator: ValidationBuilder()
                                   .minLength(6)
@@ -86,9 +148,29 @@ class RegisterScreen extends HookWidget {
                             ),
                             TextFormField(
                               controller: confirmPasswordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(
+                              focusNode: confirmPasswordFocusNode,
+                              onEditingComplete: () async {
+                                await register(
+                                    context,
+                                    formKey,
+                                    nameController,
+                                    emailController,
+                                    passwordController,
+                                    confirmPasswordController);
+                              },
+                              obscureText: isObscure,
+                              decoration: InputDecoration(
                                 hintText: 'Confirm Password',
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    obscure.state = !obscure.state;
+                                  },
+                                  icon: isObscure
+                                      ? const Icon(Icons.visibility,
+                                          color: Colors.grey)
+                                      : const Icon(Icons.visibility_off,
+                                          color: Colors.grey),
+                                ),
                               ),
                               validator: (value) {
                                 if (value!.isEmpty) {
@@ -107,39 +189,13 @@ class RegisterScreen extends HookWidget {
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {
-                          final isValid = formKey.currentState!.validate();
-                          FocusScope.of(context).unfocus();
-                          if (isValid) {
-                            try {
-                              final userCredential = await FirebaseAuth.instance
-                                  .createUserWithEmailAndPassword(
-                                      email: emailController.text
-                                          .toLowerCase()
-                                          .trim(),
-                                      password: passwordController.text.trim());
-                              final user = userCredential.user;
-                              final uid = user!.uid;
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(uid)
-                                  .set({
-                                'id': uid,
-                                'username': nameController.text,
-                                'email': emailController.text,
-                                'pfpUrl': '',
-                                'createdAt': Timestamp.now(),
-                              });
-                              showSuccesSnackbar(
-                                  context, 'Succesfully registered!');
-                              context.go('/');
-                            } on FirebaseException catch (error) {
-                              showErrorSnackbar(context, error.message);
-                              return;
-                            } catch (error) {
-                              showErrorSnackbar(context, error.toString());
-                              return;
-                            }
-                          }
+                          await register(
+                              context,
+                              formKey,
+                              nameController,
+                              emailController,
+                              passwordController,
+                              confirmPasswordController);
                         },
                         child: const Text('Register'),
                       ),

@@ -3,18 +3,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../consts/colors.dart';
 import '../../helper/message_helper.dart';
 
-class LoginScreen extends HookWidget {
+final _obscureProvider = StateProvider((ref) => true);
+
+Future<void> login(
+    BuildContext context,
+    GlobalKey<FormState> formKey,
+    TextEditingController emailController,
+    TextEditingController passwordController) async {
+  final isValid = formKey.currentState!.validate();
+  FocusScope.of(context).unfocus();
+  if (isValid) {
+    try {
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: emailController.text.toLowerCase().trim(),
+        password: passwordController.text.trim(),
+      )
+          .then((value) {
+        showSuccesSnackbar(context, 'Login successful!');
+        context.go('/');
+      });
+    } on FirebaseException catch (error) {
+      showErrorSnackbar(context, error.message);
+      return;
+    } catch (error) {
+      showErrorSnackbar(context, error.toString());
+      return;
+    }
+  }
+}
+
+class LoginScreen extends HookConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formKey = useMemoized(GlobalKey<FormState>.new);
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
+    final passwordFocusNode = useFocusNode();
+    StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
+    final isObscure = ref.watch(_obscureProvider);
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -50,6 +84,8 @@ class LoginScreen extends HookWidget {
                             TextFormField(
                               controller: emailController,
                               keyboardType: TextInputType.emailAddress,
+                              onEditingComplete: () =>
+                                  passwordFocusNode.requestFocus(),
                               decoration: const InputDecoration(
                                 hintText: 'Email',
                               ),
@@ -60,11 +96,26 @@ class LoginScreen extends HookWidget {
                             ),
                             TextFormField(
                               controller: passwordController,
-                              obscureText: true,
-                              decoration: const InputDecoration(
-                                hintText: 'Password',
-                              ),
+                              focusNode: passwordFocusNode,
+                              onEditingComplete: () async {
+                                await login(context, formKey, emailController,
+                                    passwordController);
+                              },
+                              obscureText: isObscure,
                               validator: ValidationBuilder().build(),
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                suffixIcon: IconButton(
+                                  onPressed: () {
+                                    obscure.state = !obscure.state;
+                                  },
+                                  icon: isObscure
+                                      ? const Icon(Icons.visibility,
+                                          color: Colors.grey)
+                                      : const Icon(Icons.visibility_off,
+                                          color: Colors.grey),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -72,29 +123,8 @@ class LoginScreen extends HookWidget {
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {
-                          final isValid = formKey.currentState!.validate();
-                          FocusScope.of(context).unfocus();
-                          if (isValid) {
-                            try {
-                              await FirebaseAuth.instance
-                                  .signInWithEmailAndPassword(
-                                email:
-                                    emailController.text.toLowerCase().trim(),
-                                password: passwordController.text.trim(),
-                              )
-                                  .then((value) {
-                                showSuccesSnackbar(
-                                    context, 'Login successful!');
-                                context.go('/');
-                              });
-                            } on FirebaseException catch (error) {
-                              showErrorSnackbar(context, error.message);
-                              return;
-                            } catch (error) {
-                              showErrorSnackbar(context, error.toString());
-                              return;
-                            }
-                          }
+                          await login(context, formKey, emailController,
+                              passwordController);
                         },
                         child: const Text('Login'),
                       ),
