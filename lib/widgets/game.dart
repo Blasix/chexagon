@@ -90,6 +90,12 @@ void showGameCreationDialog(BuildContext context, UserModel currentUser) {
                       'whiteCaptured': [],
                       'blackCaptured': [],
                     }).then((value) {
+                      FirebaseFirestore.instance
+                          .collection('games')
+                          .doc(value.id)
+                          .update({
+                        'id': value.id,
+                      });
                       if (Navigator.canPop(context)) Navigator.pop(context);
                       context.go('/game:${value.id}');
                     });

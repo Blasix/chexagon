@@ -1,4 +1,6 @@
+import 'package:chexagon/components/game.dart';
 import 'package:chexagon/components/user.dart';
+import 'package:chexagon/services/game_service.dart';
 import 'package:chexagon/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -30,9 +32,11 @@ class GameSelect extends HookWidget {
     ];
 
     Future<void> loadCurrentUser() async {
-      final UserService userService = UserService();
-      final UserModel? currentUser0 = await userService.getCurrentUser();
+      final UserModel? currentUser0 = await UserService().getCurrentUser();
       currentUser = currentUser0;
+      final List<OnlineGameModel> currentGames0 =
+          await GameService().getCurrentGames();
+      print(currentGames0);
     }
 
     useEffect(
