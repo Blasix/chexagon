@@ -1,22 +1,23 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../components/user.dart';
 
-class UserService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final CollectionReference _usersCollection =
-      FirebaseFirestore.instance.collection('users');
-
-  Future<UserModel?> getCurrentUser() async {
-    final User? user = _auth.currentUser;
-    if (user != null) {
-      final DocumentSnapshot userDoc =
-          await _usersCollection.doc(user.uid).get();
-      if (userDoc.exists) {
-        return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
-      }
+final userProvider = StreamProvider.autoDispose<UserModel?>((ref) {
+  final Stream<DocumentSnapshot<Map<String, dynamic>>> userStream =
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .snapshots();
+  ref.onDispose(() {
+    userStream.drain();
+  });
+  final Stream<UserModel?> userModelStream = userStream.map((snapshot) {
+    if (snapshot.exists) {
+      return UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
     }
     return null;
-  }
-}
+  });
+  return userModelStream;
+});

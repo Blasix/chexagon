@@ -7,7 +7,7 @@ import 'package:rxdart/rxdart.dart';
 
 import '../components/game.dart';
 
-final gamesProvider = StreamProvider<List<OnlineGameModel>>((ref) {
+final gamesProvider = StreamProvider.autoDispose<List<OnlineGameModel>>((ref) {
   final CollectionReference gamesCollection =
       FirebaseFirestore.instance.collection('games');
 

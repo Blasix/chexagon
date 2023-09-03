@@ -35,8 +35,12 @@ Future<void> register(
         'pfpUrl': '',
         'createdAt': Timestamp.now(),
       });
-      showSuccesSnackbar(context, 'Succesfully registered!');
-      context.go('/');
+      if (context.mounted) {
+        showSuccesSnackbar(context, 'Succesfully registered!');
+        context.go('/');
+      } else {
+        showErrorSnackbar(context, null);
+      }
     } on FirebaseException catch (error) {
       showErrorSnackbar(context, error.message);
       return;

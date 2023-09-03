@@ -36,4 +36,24 @@ class UserModel {
       createdAt: map['createdAt'],
     );
   }
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      pfpUrl: json['pfpUrl'] as String,
+      createdAt: json['createdAt'] as Timestamp,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'pfpUrl': pfpUrl,
+      'createdAt': createdAt,
+    };
+  }
 }
