@@ -189,3 +189,8 @@ List<List<ChessPiece?>> convertListOfMapsToBoard(
   }
   return board;
 }
+
+List<Map<String, dynamic>> convertCapturedListToListOfMaps(
+    List<ChessPiece> pieces) {
+  return pieces.map((piece) => piece.toJson()).toList();
+}

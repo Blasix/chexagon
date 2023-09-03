@@ -20,9 +20,17 @@ class ChessPiece {
   }
 
   factory ChessPiece.fromJson(Map<String, dynamic> json) {
+    Map<String, ChessPieceType> typeMap = {
+      'king': ChessPieceType.king,
+      'queen': ChessPieceType.queen,
+      'rook': ChessPieceType.rook,
+      'bishop': ChessPieceType.bishop,
+      'knight': ChessPieceType.knight,
+      'pawn': ChessPieceType.pawn,
+    };
+    final type = json['type'] as String;
     return ChessPiece(
-      type: ChessPieceType.values.firstWhere(
-          (type) => type.toString().split('.').last == json['type']),
+      type: typeMap[type]!,
       isWhite: json['isWhite'],
       imagePath: json['imagePath'],
     );

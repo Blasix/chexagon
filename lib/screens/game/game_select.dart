@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:chexagon/components/user.dart';
+import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/services/game_service.dart';
 import 'package:chexagon/services/user_service.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +31,12 @@ class GameSelect extends HookConsumerWidget {
     switch (games) {
       case AsyncData(:final value):
         gamesList = value;
+
+        break;
+      case AsyncError(:final error):
+        // TODO: show error
+        gamesList = [];
+        break;
       default:
         gamesList = [];
     }
@@ -36,6 +45,8 @@ class GameSelect extends HookConsumerWidget {
     switch (currentUserProvider) {
       case AsyncData(:final value):
         currentUser = value;
+        // print(initBoard());
+        print(gamesList[0].board);
       default:
         currentUser = null;
     }

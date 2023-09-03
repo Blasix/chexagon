@@ -1,4 +1,5 @@
 import 'package:chexagon/components/piece.dart';
+import 'package:chexagon/helper/board_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GameModel {
@@ -25,17 +26,16 @@ class GameModel {
   });
 }
 
-// TODO: change all dynamic to appropriate types
 class OnlineGameModel {
   final String id;
   final String player1;
   final String player2;
   final bool isPlayer1White;
   final Timestamp startedAt;
-  final List<dynamic> board;
+  final List<List<ChessPiece?>> board;
   final bool isWhiteTurn;
-  final List<dynamic> whiteCaptured;
-  final List<dynamic> blackCaptured;
+  final List<ChessPiece> whiteCaptured;
+  final List<ChessPiece> blackCaptured;
 
   OnlineGameModel({
     required this.id,
@@ -50,16 +50,35 @@ class OnlineGameModel {
   });
 
   factory OnlineGameModel.fromJson(Map<String, dynamic> json) {
+    final whiteCaptured = (json['whiteCaptured'] as List<dynamic>)
+        .map((piece) => ChessPiece.fromJson(piece))
+        .toList();
+    final blackCaptured = (json['blackCaptured'] as List<dynamic>)
+        .map((piece) => ChessPiece.fromJson(piece))
+        .toList();
+
+    final board = (json['board'] as List<dynamic>).map((row) {
+      return List<ChessPiece?>.generate(11, (index) {
+        final piece = row[index.toString()];
+        if (piece == null) {
+          // Add a null check here
+          return null;
+        } else {
+          return ChessPiece.fromJson(piece);
+        }
+      });
+    }).toList();
+
     return OnlineGameModel(
       id: json['id'] as String,
       player1: json['player1'] as String,
       player2: json['player2'] as String,
       isPlayer1White: json['isPlayer1White'] as bool,
       startedAt: json['startedAt'] as Timestamp,
-      board: json['board'] as List<dynamic>,
+      board: board,
       isWhiteTurn: json['isWhiteTurn'] as bool,
-      whiteCaptured: json['whiteCaptured'] as List<dynamic>,
-      blackCaptured: json['blackCaptured'] as List<dynamic>,
+      whiteCaptured: whiteCaptured,
+      blackCaptured: blackCaptured,
     );
   }
 
