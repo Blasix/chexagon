@@ -2,31 +2,37 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../components/game.dart';
 
-// TODO: make getCurrentGames() into listenToCurrentGames() so it updates in real time
-
-class GameService {
-  final CollectionReference _gamesCollection =
+final gamesProvider = StreamProvider<List<OnlineGameModel>>((ref) {
+  final CollectionReference gamesCollection =
       FirebaseFirestore.instance.collection('games');
 
-  Future<List<OnlineGameModel>> getCurrentGames() async {
-    final QuerySnapshot player1GamesSnapshot = await _gamesCollection
-        .where('player1', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get();
+  final Stream<QuerySnapshot> player1GamesStream = gamesCollection
+      .where('player1', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .snapshots();
+  final Stream<QuerySnapshot> player2GamesStream = gamesCollection
+      .where('player2', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .snapshots();
+  ref.onDispose(() {
+    player1GamesStream.drain();
+    player2GamesStream.drain();
+  });
+  final Stream<List<OnlineGameModel>> gamesStream = Rx.combineLatest2(
+      player1GamesStream, player2GamesStream,
+      (QuerySnapshot player1GamesSnapshot, QuerySnapshot player2GamesSnapshot) {
     final List<OnlineGameModel> player1Games = player1GamesSnapshot.docs
         .map((QueryDocumentSnapshot doc) =>
             OnlineGameModel.fromJson(doc.data() as Map<String, dynamic>))
         .toList();
-    final QuerySnapshot player2GamesSnapshot = await _gamesCollection
-        .where('player2', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .get();
     final List<OnlineGameModel> player2Games = player2GamesSnapshot.docs
         .map((QueryDocumentSnapshot doc) =>
             OnlineGameModel.fromJson(doc.data() as Map<String, dynamic>))
         .toList();
-    final List<OnlineGameModel> games = [...player1Games, ...player2Games];
-    return games;
-  }
-}
+    return [...player1Games, ...player2Games];
+  });
+  return gamesStream;
+});
