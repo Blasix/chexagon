@@ -194,3 +194,23 @@ List<Map<String, dynamic>> convertCapturedListToListOfMaps(
     List<ChessPiece> pieces) {
   return pieces.map((piece) => piece.toJson()).toList();
 }
+
+List<int> getKingPosition(List<List<ChessPiece?>> board, bool isWhite) {
+  int? kingRow;
+  int? kingCol;
+
+  for (int row = 0; row < board.length; row++) {
+    for (int col = 0; col < board[row].length; col++) {
+      final piece = board[row][col];
+      if (piece != null && piece.type == ChessPieceType.king && piece.isWhite) {
+        kingRow = row;
+        kingCol = col;
+        break;
+      }
+    }
+    if (kingRow != null && kingCol != null) {
+      break;
+    }
+  }
+  return [kingRow!, kingCol!];
+}

@@ -1,5 +1,4 @@
 import 'package:chexagon/components/piece.dart';
-import 'package:chexagon/helper/board_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GameModel {

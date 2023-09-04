@@ -1,14 +1,11 @@
 import 'dart:math';
 
-import 'package:chexagon/components/piece.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../components/user.dart';
 import '../helper/board_helper.dart';
-
-// TODO make the gui acually update when any of the buttons are pressed
 
 void showGameCreationDialog(BuildContext context, UserModel currentUser) {
   bool isPlayer1White = true;
@@ -81,12 +78,6 @@ void showGameCreationDialog(BuildContext context, UserModel currentUser) {
                   child: const Text('Cancel')),
               ElevatedButton(
                   onPressed: () {
-                    final whiteCaptured = convertCapturedListToListOfMaps([
-                      ChessPiece(
-                          type: ChessPieceType.bishop,
-                          isWhite: true,
-                          imagePath: 'some path')
-                    ]);
                     FirebaseFirestore.instance.collection('games').add({
                       'player1': currentUser.id,
                       'player2': '',
@@ -94,7 +85,7 @@ void showGameCreationDialog(BuildContext context, UserModel currentUser) {
                       'startedAt': DateTime.now(),
                       'board': convertBoardToListOfMaps(initBoard()),
                       'isWhiteTurn': true,
-                      'whiteCaptured': whiteCaptured,
+                      'whiteCaptured': [],
                       'blackCaptured': [],
                     }).then((value) {
                       FirebaseFirestore.instance

@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:chexagon/components/user.dart';
-import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/services/game_service.dart';
 import 'package:chexagon/services/user_service.dart';
 import 'package:flutter/material.dart';
@@ -24,29 +21,30 @@ class GameSelect extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final games = ref.watch(gamesProvider);
-    final currentUserProvider = ref.watch(userProvider);
-
-    final List<OnlineGameModel> gamesList;
-    switch (games) {
+    final gamesListProvider = ref.watch(gamesProvider);
+    List<OnlineGameModel> gamesList;
+    switch (gamesListProvider) {
       case AsyncData(:final value):
         gamesList = value;
-
         break;
       case AsyncError(:final error):
-        // TODO: show error
+        print(error);
         gamesList = [];
         break;
       default:
         gamesList = [];
     }
 
+    final currentUserProvider = ref.watch(userProvider);
     UserModel? currentUser;
     switch (currentUserProvider) {
       case AsyncData(:final value):
         currentUser = value;
-        // print(initBoard());
-        print(gamesList[0].board);
+        break;
+      case AsyncError(:final error):
+        print(error);
+        currentUser = null;
+        break;
       default:
         currentUser = null;
     }
@@ -61,7 +59,7 @@ class GameSelect extends HookConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GestureDetector(
-                  //TODO: add ability to change profile
+                  //TODO: add ability to change profile picture
                   //for picture: https://github.com/Blasix/group_planner_app/blob/master/lib/screens/user.dart
                   onTap: () {
                     showAccountDialog(context, currentUser!);
@@ -155,7 +153,10 @@ class GameSelect extends HookConsumerWidget {
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      context
+                                          .go('/game:${gamesList[index].id}');
+                                    },
                                     child: HexagonGrid.flat(
                                       depth: 5,
                                       buildTile: (coordinates) {

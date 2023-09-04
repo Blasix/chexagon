@@ -3,28 +3,42 @@ import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
 import 'package:chexagon/helper/color_helper.dart';
 import 'package:chexagon/helper/piece_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hexagon/hexagon.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:simple_shadow/simple_shadow.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../components/game.dart';
 import '../../consts/colors.dart';
 import '../../consts/images.dart';
+import '../../services/game_service.dart';
 
 // TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 // TODO: make captured lists automagicly calcalated based on board
 // TODO: checkmate not working
 
-class GameBoard extends StatefulWidget {
+// multiplayer
+// TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
+// TODO: make sure the current player can only move thier own pieces
+// TODO: add posibility to invite other people
+// ! When you move a pawn 2 spaces isWhiteTurn is not updated
+// ! When you promote a pawn it is not updated in the database
+
+void upload;
+
+class GameBoard extends ConsumerStatefulWidget {
   const GameBoard({super.key, required this.gameID});
   final String gameID;
 
   @override
-  State<GameBoard> createState() => _GameBoardState();
+  ConsumerState<GameBoard> createState() => _GameBoardState();
 }
 
-class _GameBoardState extends State<GameBoard> {
+class _GameBoardState extends ConsumerState<GameBoard> {
   // A 2-dimensional list representing the chessboard,
   // with each position possibly containing a chess piece
   late List<List<ChessPiece?>> board;
@@ -469,8 +483,18 @@ class _GameBoardState extends State<GameBoard> {
               ));
     }
 
-    // change turn
-    isWhiteTurn = !isWhiteTurn;
+    // if game is multiplayer, upload to firebase
+    if (widget.gameID.substring(1) != 'local') {
+      FirebaseFirestore.instance
+          .collection('games')
+          .doc(widget.gameID.substring(1))
+          .update({
+        'board': convertBoardToListOfMaps(board),
+        'isWhiteTurn': !isWhiteTurn,
+        'whiteCaptured': convertCapturedListToListOfMaps(whiteCaptured),
+        'blackCaptured': convertCapturedListToListOfMaps(blackCaptured),
+      });
+    }
   }
 
   // check if king is in check
@@ -533,8 +557,6 @@ class _GameBoardState extends State<GameBoard> {
     if (Navigator.canPop(context)) Navigator.pop(context);
     initBoard();
     checkStatus = false;
-    whiteKingPosition = [6, 9];
-    blackKingPosition = [6, 0];
     isWhiteTurn = true;
     whiteCaptured.clear();
     blackCaptured.clear();
@@ -700,9 +722,11 @@ class _GameBoardState extends State<GameBoard> {
   // sized of captured rows
   double? capturedSize = 60;
 
+  // should the board be flipped
+  bool? shouldFlip;
+
   @override
   Widget build(BuildContext context) {
-    print(widget.gameID);
     // sort captured pieces by type
     whiteCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
@@ -715,6 +739,38 @@ class _GameBoardState extends State<GameBoard> {
         MediaQuery.of(context).padding.top -
         MediaQuery.of(context).padding.bottom;
 
+    // FIREBASE
+    String gameID = widget.gameID.substring(1);
+    if (gameID != 'local') {
+      // get current games
+      final gamesListProvider = ref.watch(gamesProvider);
+      OnlineGameModel? currentGame;
+      switch (gamesListProvider) {
+        case AsyncData(:final value):
+          // get current game
+          currentGame = value.firstWhere((element) => element.id == gameID);
+          board = currentGame.board;
+          blackCaptured = currentGame.blackCaptured;
+          whiteCaptured = currentGame.whiteCaptured;
+          isWhiteTurn = currentGame.isWhiteTurn;
+          whiteKingPosition = getKingPosition(board, true);
+          blackKingPosition = getKingPosition(board, false);
+          if (currentGame.player1 == FirebaseAuth.instance.currentUser!.uid) {
+            if (currentGame.isPlayer1White == false) {
+              shouldFlip = true;
+            }
+          } else {
+            if (currentGame.isPlayer1White == true) {
+              shouldFlip = true;
+            }
+          }
+          break;
+        case AsyncError(:final error):
+          print(error);
+          break;
+      }
+    }
+
     return Scaffold(
       backgroundColor: bgColor,
       body: Stack(
@@ -725,6 +781,11 @@ class _GameBoardState extends State<GameBoard> {
               height: availableHeight - capturedSize * 2,
               width: MediaQuery.of(context).size.width,
               buildTile: (coordinates) {
+                // flip board if needed
+                if (shouldFlip == true) {
+                  coordinates =
+                      Coordinates.axial(-coordinates.q, -coordinates.r);
+                }
                 piece = board[5 + coordinates.q][5 + coordinates.r];
                 isSelected = selectedCoordinates == coordinates;
                 for (var position in validMoves) {
