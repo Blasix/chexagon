@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
@@ -7,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:simple_shadow/simple_shadow.dart';
@@ -17,14 +20,13 @@ import '../../consts/colors.dart';
 import '../../consts/images.dart';
 import '../../services/game_service.dart';
 
-// TODO: BIG BUGG: on safari image color does not change, maby use font awesome icons?
 // TODO: make captured lists automagicly calcalated based on board
 // TODO: checkmate not working
 
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
-// TODO: make sure the current player can only move thier own pieces
 // TODO: add posibility to invite other people
+// ! promotion not working (first needs to give popup to chose, then player needs to chose then move and promote and upload)
 // ! When you move a pawn 2 spaces isWhiteTurn is not updated
 // ! When you promote a pawn it is not updated in the database
 
@@ -52,7 +54,12 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   // initialize board
 
   // user selects a piece
-  void pieceSelected(Coordinates coordinates) {
+  void pieceSelected(Coordinates coordinates, bool isPlayerWhite) {
+    if (widget.gameID.substring(1) != 'local') {
+      if (isPlayerWhite != isWhiteTurn) {
+        return;
+      }
+    }
     setState(() {
       int q = 5 + coordinates.q;
       int r = 5 + coordinates.r;
@@ -494,6 +501,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         'whiteCaptured': convertCapturedListToListOfMaps(whiteCaptured),
         'blackCaptured': convertCapturedListToListOfMaps(blackCaptured),
       });
+    } else {
+      // if game is local, switch turns
+      setState(() {
+        isWhiteTurn = !isWhiteTurn;
+      });
     }
   }
 
@@ -741,12 +753,18 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     // FIREBASE
     String gameID = widget.gameID.substring(1);
+    bool playerNotInGame = false;
     if (gameID != 'local') {
       // get current games
       final gamesListProvider = ref.watch(gamesProvider);
       OnlineGameModel? currentGame;
       switch (gamesListProvider) {
         case AsyncData(:final value):
+          // check if a game is found
+          if (!value.any((element) => element.id == gameID)) {
+            playerNotInGame = true;
+            break;
+          }
           // get current game
           currentGame = value.firstWhere((element) => element.id == gameID);
           board = currentGame.board;
@@ -773,151 +791,181 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      body: Stack(
-        children: [
-          Center(
-            child: HexagonGrid.flat(
-              depth: 5,
-              height: availableHeight - capturedSize * 2,
-              width: MediaQuery.of(context).size.width,
-              buildTile: (coordinates) {
-                // flip board if needed
-                if (shouldFlip == true) {
-                  coordinates =
-                      Coordinates.axial(-coordinates.q, -coordinates.r);
-                }
-                piece = board[5 + coordinates.q][5 + coordinates.r];
-                isSelected = selectedCoordinates == coordinates;
-                for (var position in validMoves) {
-                  if (position[0] == 5 + coordinates.q &&
-                      position[1] == 5 + coordinates.r) {
-                    isValidMove = true;
-                    break;
-                  } else {
-                    isValidMove = false;
-                  }
-                }
-                Color? color = whatColor(coordinates);
-
-                // set color for the tile
-                if (isSelected) {
-                  color = Colors.green;
-                } else if (isValidMove) {
-                  color = Colors.green[300];
-                }
-
-                // return a widget for the tile
-                return HexagonWidgetBuilder(
-                    color: color,
-                    padding: 2.0,
-                    cornerRadius: 8.0,
-                    child: GestureDetector(
-                      onTap: () {
-                        pieceSelected(coordinates);
-                      },
-                      child: piece != null
-                          ? piece!.type == ChessPieceType.enPassant
-                              ? null
-                              : Padding(
-                                  padding: const EdgeInsets.all(5),
-                                  child: Image.asset(
-                                    color: piece!.isWhite
-                                        ? Colors.white
-                                        : Colors.black,
-                                    piece!.imagePath,
-                                    fit: BoxFit.contain,
-                                  ),
-                                )
-                          : null,
-                    ));
-              },
-            ),
-          ),
-          SafeArea(
-            child: Stack(
+      body: playerNotInGame
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('You are not in this game',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      )),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.go('/');
+                    },
+                    child: const Text('Go back'),
+                  ),
+                ],
+              ),
+            )
+          : Stack(
               children: [
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: SizedBox(
-                    height: capturedSize,
-                    child: SingleChildScrollView(
-                      controller: ScrollController(),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          buildCapturedRow(blackCaptured),
-                          if (calculateWorth(blackCaptured, whiteCaptured) < 0)
-                            Text(
-                              "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.black.withOpacity(0.5)),
-                            ),
-                        ],
-                      ),
-                    ),
+                Center(
+                  child: HexagonGrid.flat(
+                    depth: 5,
+                    height: availableHeight - capturedSize * 2,
+                    width: MediaQuery.of(context).size.width,
+                    buildTile: (coordinates) {
+                      // flip board if needed
+                      if (shouldFlip == true) {
+                        coordinates =
+                            Coordinates.axial(-coordinates.q, -coordinates.r);
+                      }
+                      piece = board[5 + coordinates.q][5 + coordinates.r];
+                      isSelected = selectedCoordinates == coordinates;
+                      for (var position in validMoves) {
+                        if (position[0] == 5 + coordinates.q &&
+                            position[1] == 5 + coordinates.r) {
+                          isValidMove = true;
+                          break;
+                        } else {
+                          isValidMove = false;
+                        }
+                      }
+                      Color? color = whatColor(coordinates);
+
+                      // set color for the tile
+                      if (isSelected) {
+                        color = Colors.green;
+                      } else if (isValidMove) {
+                        color = Colors.green[300];
+                      }
+
+                      // return a widget for the tile
+                      return HexagonWidgetBuilder(
+                          color: color,
+                          padding: 2.0,
+                          cornerRadius: 8.0,
+                          child: GestureDetector(
+                            onTap: () {
+                              bool isPlayerWhite;
+                              if (shouldFlip == true) {
+                                isPlayerWhite = false;
+                              } else {
+                                isPlayerWhite = true;
+                              }
+                              pieceSelected(coordinates, isPlayerWhite);
+                            },
+                            child: piece != null
+                                ? piece!.type == ChessPieceType.enPassant
+                                    ? null
+                                    : Padding(
+                                        padding: const EdgeInsets.all(5),
+                                        child: Image.asset(
+                                          color: piece!.isWhite
+                                              ? Colors.white
+                                              : Colors.black,
+                                          piece!.imagePath,
+                                          fit: BoxFit.contain,
+                                        ),
+                                      )
+                                : null,
+                          ));
+                    },
                   ),
                 ),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: SizedBox(
-                    height: capturedSize,
-                    child: SingleChildScrollView(
-                      controller: ScrollController(),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          buildCapturedRow(whiteCaptured),
-                          if (calculateWorth(blackCaptured, whiteCaptured) > 0)
-                            Text(
-                              "+${calculateWorth(blackCaptured, whiteCaptured)}",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.black.withOpacity(0.5)),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Column(
+                SafeArea(
+                  child: Stack(
                     children: [
-                      IconButton(
-                        icon: Icon(
-                          FontAwesomeIcons.arrowsRotate,
-                          color: Colors.black.withOpacity(0.5),
-                          size: 60,
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: SizedBox(
+                          height: capturedSize,
+                          child: SingleChildScrollView(
+                            controller: ScrollController(),
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                buildCapturedRow(blackCaptured),
+                                if (calculateWorth(
+                                        blackCaptured, whiteCaptured) <
+                                    0)
+                                  Text(
+                                    "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black.withOpacity(0.5)),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                        onPressed: () {
-                          resetGame();
-                        },
                       ),
-                      IconButton(
-                        icon: Icon(
-                          FontAwesomeIcons.github,
-                          color: Colors.black.withOpacity(0.5),
-                          size: 60,
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: SizedBox(
+                          height: capturedSize,
+                          child: SingleChildScrollView(
+                            controller: ScrollController(),
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                buildCapturedRow(whiteCaptured),
+                                if (calculateWorth(
+                                        blackCaptured, whiteCaptured) >
+                                    0)
+                                  Text(
+                                    "+${calculateWorth(blackCaptured, whiteCaptured)}",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black.withOpacity(0.5)),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
-                        onPressed: () async {
-                          final Uri url =
-                              Uri.parse('https://github.com/Blasix/chexagon');
-                          if (!await launchUrl(url)) {
-                            throw Exception('Could not launch $url');
-                          }
-                        },
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Column(
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                FontAwesomeIcons.arrowsRotate,
+                                color: Colors.black.withOpacity(0.5),
+                                size: 60,
+                              ),
+                              onPressed: () {
+                                resetGame();
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                FontAwesomeIcons.github,
+                                color: Colors.black.withOpacity(0.5),
+                                size: 60,
+                              ),
+                              onPressed: () async {
+                                final Uri url = Uri.parse(
+                                    'https://github.com/Blasix/chexagon');
+                                if (!await launchUrl(url)) {
+                                  throw Exception('Could not launch $url');
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
