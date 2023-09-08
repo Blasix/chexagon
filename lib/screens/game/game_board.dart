@@ -24,9 +24,7 @@ import '../../services/game_service.dart';
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
 // TODO: add posibility to invite other people
-// ! promotion not working (first needs to give popup to chose, then player needs to chose then move and promote and upload)
 // ! When you move a pawn 2 spaces isWhiteTurn is not updated
-// ! When you promote a pawn it is not updated in the database
 
 void upload;
 
@@ -402,15 +400,23 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           if (q == (i + 5) && r == 0 ||
               q == (i - 1) && r == (6 - i) ||
               q == 5 && r == 0) {
-            promotePawn(true, q, r);
-            break;
+            promotePawn(true, q, r, qStart, rStart);
+            if (widget.gameID.substring(1) != 'local') {
+              return;
+            } else {
+              break;
+            }
           }
         } else {
           if (q == (i + 5) && r == (10 - i) ||
               q == (i - 1) && r == 10 ||
               q == 5 && r == 10) {
-            promotePawn(false, q, r);
-            break;
+            promotePawn(false, q, r, qStart, rStart);
+            if (widget.gameID.substring(1) != 'local') {
+              return;
+            } else {
+              break;
+            }
           }
         }
       }
@@ -576,7 +582,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   }
 
   // pormote pawn
-  void promotePawn(bool isWhite, int q, int r) {
+  void promotePawn(bool isWhite, int q, int r, int qStart, int rStart) {
     void addToCaptured(ChessPieceType type) {
       if (isWhite) {
         whiteCaptured.add(
@@ -602,6 +608,48 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       // return;
     }
 
+    void completePromotionOnline() {
+      if (widget.gameID.substring(1) != 'local') {
+        // move piece and clear the old location
+        board[qStart][rStart] = null;
+
+        // check if king is in check
+        if (isKingInCheck(!isWhiteTurn)) {
+          checkStatus = true;
+        } else {
+          checkStatus = false;
+        }
+
+        // check for checkmate
+        if (isCheckmate(!isWhiteTurn)) {
+          showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (context) => AlertDialog(
+                    title: const Text('Checkmate!'),
+                    actions: [
+                      // play game again
+                      TextButton(
+                          onPressed: () {
+                            resetGame();
+                          },
+                          child: const Text('Play Again')),
+                    ],
+                  ));
+        }
+        // upload to firebase
+        FirebaseFirestore.instance
+            .collection('games')
+            .doc(widget.gameID.substring(1))
+            .update({
+          'board': convertBoardToListOfMaps(board),
+          'isWhiteTurn': !isWhiteTurn,
+          'whiteCaptured': convertCapturedListToListOfMaps(whiteCaptured),
+          'blackCaptured': convertCapturedListToListOfMaps(blackCaptured),
+        });
+      }
+    }
+
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -620,6 +668,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                   pieceImagePaths[ChessPieceType.queen]!);
                         });
                         addToCaptured(ChessPieceType.queen);
+                        completePromotionOnline();
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Queen')),
@@ -632,6 +681,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                               imagePath: pieceImagePaths[ChessPieceType.rook]!);
                         });
                         addToCaptured(ChessPieceType.rook);
+                        completePromotionOnline();
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Rook')),
@@ -645,6 +695,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                   pieceImagePaths[ChessPieceType.bishop]!);
                         });
                         addToCaptured(ChessPieceType.bishop);
+                        completePromotionOnline();
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Bishop')),
@@ -658,6 +709,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                   pieceImagePaths[ChessPieceType.knight]!);
                         });
                         addToCaptured(ChessPieceType.knight);
+                        completePromotionOnline();
                         if (Navigator.canPop(context)) Navigator.pop(context);
                       },
                       child: const Text('Knight')),
