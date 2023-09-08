@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:chexagon/components/piece.dart';
 import 'package:chexagon/helper/board_helper.dart';
@@ -50,8 +48,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     super.initState();
     board = initBoard();
   }
-
-  // initialize board
 
   // user selects a piece
   void pieceSelected(Coordinates coordinates, bool isPlayerWhite) {
@@ -774,13 +770,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           whiteKingPosition = getKingPosition(board, true);
           blackKingPosition = getKingPosition(board, false);
           if (currentGame.player1 == FirebaseAuth.instance.currentUser!.uid) {
-            if (currentGame.isPlayer1White == false) {
-              shouldFlip = true;
-            }
+            shouldFlip = currentGame.isPlayer1White == false;
           } else {
-            if (currentGame.isPlayer1White == true) {
-              shouldFlip = true;
-            }
+            shouldFlip = currentGame.isPlayer1White == true;
           }
           break;
         case AsyncError(:final error):
@@ -936,12 +928,16 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                FontAwesomeIcons.arrowsRotate,
+                                gameID != 'local'
+                                    ? FontAwesomeIcons.rightFromBracket
+                                    : FontAwesomeIcons.arrowsRotate,
                                 color: Colors.black.withOpacity(0.5),
                                 size: 60,
                               ),
                               onPressed: () {
-                                resetGame();
+                                gameID != 'local'
+                                    ? context.go('/')
+                                    : resetGame();
                               },
                             ),
                             IconButton(

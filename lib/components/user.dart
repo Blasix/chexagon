@@ -6,7 +6,6 @@ class UserModel {
   final String email;
   final String pfpUrl;
   final Timestamp createdAt;
-  // final List<int> currentGames;
 
   UserModel({
     required this.id,
@@ -14,7 +13,6 @@ class UserModel {
     required this.email,
     required this.pfpUrl,
     required this.createdAt,
-    // required this.currentGames,
   });
 
   Map<String, dynamic> toMap() {
