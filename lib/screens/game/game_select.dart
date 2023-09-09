@@ -1,3 +1,5 @@
+import 'package:chexagon/components/piece.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hexagon/hexagon.dart';
@@ -60,7 +62,9 @@ class GameSelect extends HookConsumerWidget {
                   onTap: () {
                     showAccountDialog(context, currentUser!);
                   },
-                  child: const CircleAvatar(),
+                  child: const CircleAvatar(
+                    radius: 30,
+                  ),
                 ),
               ),
             ),
@@ -156,14 +160,54 @@ class GameSelect extends HookConsumerWidget {
                                     child: HexagonGrid.flat(
                                       depth: 5,
                                       buildTile: (coordinates) {
+                                        // should the board be flipped
+                                        bool? shouldFlip;
+                                        if (gamesList[index].player1 ==
+                                            FirebaseAuth
+                                                .instance.currentUser!.uid) {
+                                          shouldFlip =
+                                              !gamesList[index].isPlayer1White;
+                                        } else {
+                                          shouldFlip =
+                                              gamesList[index].isPlayer1White;
+                                        }
+                                        // flip board if needed
+                                        if (shouldFlip == true) {
+                                          coordinates = Coordinates.axial(
+                                              -coordinates.q, -coordinates.r);
+                                        }
+                                        // get piece
+                                        final ChessPiece? piece =
+                                            gamesList[index]
+                                                    .board[5 + coordinates.q]
+                                                [5 + coordinates.r];
+                                        // get color
                                         final Color? color =
                                             whatColor(coordinates);
 
                                         // return a widget for the tile
                                         return HexagonWidgetBuilder(
+                                          elevation: 1,
                                           color: color,
                                           padding: 0.8,
                                           cornerRadius: 1.0,
+                                          child: piece != null
+                                              ? piece.type ==
+                                                      ChessPieceType.enPassant
+                                                  ? null
+                                                  : Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              1.8),
+                                                      child: Image.asset(
+                                                        color: piece.isWhite
+                                                            ? Colors.white
+                                                            : Colors.black,
+                                                        piece.imagePath,
+                                                        fit: BoxFit.contain,
+                                                      ),
+                                                    )
+                                              : null,
                                         );
                                       },
                                     ),
