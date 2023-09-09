@@ -1,14 +1,14 @@
-import 'package:chexagon/components/user.dart';
-import 'package:chexagon/services/game_service.dart';
-import 'package:chexagon/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../components/game.dart';
+import '../../components/user.dart';
 import '../../consts/colors.dart';
 import '../../helper/color_helper.dart';
+import '../../services/game_service.dart';
+import '../../services/user_service.dart';
 import '../../widgets/account.dart';
 import '../../widgets/game.dart';
 
@@ -26,11 +26,9 @@ class GameSelect extends HookConsumerWidget {
     switch (gamesListProvider) {
       case AsyncData(:final value):
         gamesList = value;
-        break;
       case AsyncError(:final error):
         print(error);
         gamesList = [];
-        break;
       default:
         gamesList = [];
     }
@@ -40,11 +38,9 @@ class GameSelect extends HookConsumerWidget {
     switch (currentUserProvider) {
       case AsyncData(:final value):
         currentUser = value;
-        break;
       case AsyncError(:final error):
         print(error);
         currentUser = null;
-        break;
       default:
         currentUser = null;
     }
@@ -160,7 +156,8 @@ class GameSelect extends HookConsumerWidget {
                                     child: HexagonGrid.flat(
                                       depth: 5,
                                       buildTile: (coordinates) {
-                                        Color? color = whatColor(coordinates);
+                                        final Color? color =
+                                            whatColor(coordinates);
 
                                         // return a widget for the tile
                                         return HexagonWidgetBuilder(

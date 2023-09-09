@@ -38,14 +38,12 @@ Future<void> register(
       if (context.mounted) {
         showSuccesSnackbar(context, 'Succesfully registered!');
         context.go('/');
-      } else {
-        showErrorSnackbar(context, null);
       }
     } on FirebaseException catch (error) {
-      showErrorSnackbar(context, error.message);
+      if (context.mounted) showErrorSnackbar(context, error.message);
       return;
     } catch (error) {
-      showErrorSnackbar(context, error.toString());
+      if (context.mounted) showErrorSnackbar(context, error.toString());
       return;
     }
   }
@@ -64,7 +62,7 @@ class RegisterScreen extends HookConsumerWidget {
     final emailFocusNode = useFocusNode();
     final passwordFocusNode = useFocusNode();
     final confirmPasswordFocusNode = useFocusNode();
-    StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
+    final StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
     final isObscure = ref.watch(_obscureProvider);
 
     return Scaffold(

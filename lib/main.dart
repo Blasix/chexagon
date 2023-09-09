@@ -1,7 +1,3 @@
-import 'package:chexagon/screens/auth/login.dart';
-import 'package:chexagon/screens/auth/register.dart';
-import 'package:chexagon/screens/game/game_board.dart';
-import 'package:chexagon/screens/game/game_select.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +6,10 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
+import 'screens/auth/login.dart';
+import 'screens/auth/register.dart';
+import 'screens/game/game_board.dart';
+import 'screens/game/game_select.dart';
 
 // GoRouter configuration
 final _router = GoRouter(

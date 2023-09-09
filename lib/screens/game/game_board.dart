@@ -1,8 +1,4 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
-import 'package:chexagon/components/piece.dart';
-import 'package:chexagon/helper/board_helper.dart';
-import 'package:chexagon/helper/color_helper.dart';
-import 'package:chexagon/helper/piece_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +10,12 @@ import 'package:simple_shadow/simple_shadow.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../components/game.dart';
+import '../../components/piece.dart';
 import '../../consts/colors.dart';
 import '../../consts/images.dart';
+import '../../helper/board_helper.dart';
+import '../../helper/color_helper.dart';
+import '../../helper/piece_helper.dart';
 import '../../services/game_service.dart';
 
 // TODO: make captured lists automagicly calcalated based on board
@@ -55,8 +55,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       }
     }
     setState(() {
-      int q = 5 + coordinates.q;
-      int r = 5 + coordinates.r;
+      final int q = 5 + coordinates.q;
+      final int r = 5 + coordinates.r;
       // no piece is selected
       if (selectedPiece == null && board[q][r] != null) {
         if (board[q][r]!.isWhite == isWhiteTurn) {
@@ -90,14 +90,14 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   // calculate the raw valid moves for a piece
   List<List<int>> calculateRawValidMoves(int q, int r, ChessPiece? piece) {
-    List<List<int>> canidateMoves = [];
+    final List<List<int>> canidateMoves = [];
 
     if (piece == null) {
       return canidateMoves;
     }
 
     // different moves for different color
-    int direction = piece.isWhite ? -1 : 1;
+    final int direction = piece.isWhite ? -1 : 1;
 
     switch (piece.type) {
       case ChessPieceType.pawn:
@@ -125,9 +125,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           canidateMoves.add([q + direction, r]);
         }
 
-        break;
       case ChessPieceType.rook:
-        var directions = [
+        final directions = [
           [0, -1],
           [1, -1],
           [1, 0],
@@ -135,11 +134,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           [-1, 1],
           [-1, 0],
         ];
-        for (var directions in directions) {
+        for (final directions in directions) {
           var i = 1;
           while (true) {
-            var q2 = q + directions[0] * i;
-            var r2 = r + directions[1] * i;
+            final q2 = q + directions[0] * i;
+            final r2 = r + directions[1] * i;
             if (!isInBoard(q2, r2)) {
               break;
             }
@@ -155,9 +154,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
             i++;
           }
         }
-        break;
       case ChessPieceType.knight:
-        var directions = [
+        final directions = [
           [1, -3],
           [2, -3],
           [3, -2],
@@ -171,9 +169,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           [-2, -1],
           [-1, -2],
         ];
-        for (var directions in directions) {
-          var q2 = q + directions[0];
-          var r2 = r + directions[1];
+        for (final directions in directions) {
+          final q2 = q + directions[0];
+          final r2 = r + directions[1];
           if (!isInBoard(q2, r2)) {
             continue;
           }
@@ -185,9 +183,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           }
           canidateMoves.add([q2, r2]);
         }
-        break;
       case ChessPieceType.bishop:
-        var directions = [
+        final directions = [
           [1, -2],
           [2, -1],
           [1, 1],
@@ -195,11 +192,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           [-2, 1],
           [-1, -1],
         ];
-        for (var directions in directions) {
+        for (final directions in directions) {
           var i = 1;
           while (true) {
-            var q2 = q + directions[0] * i;
-            var r2 = r + directions[1] * i;
+            final q2 = q + directions[0] * i;
+            final r2 = r + directions[1] * i;
             if (!isInBoard(q2, r2)) {
               break;
             }
@@ -215,9 +212,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
             i++;
           }
         }
-        break;
       case ChessPieceType.king:
-        var directions = [
+        final directions = [
           [0, -1],
           [1, -1],
           [1, 0],
@@ -231,9 +227,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           [-2, 1],
           [-1, -1],
         ];
-        for (var directions in directions) {
-          var q2 = q + directions[0];
-          var r2 = r + directions[1];
+        for (final directions in directions) {
+          final q2 = q + directions[0];
+          final r2 = r + directions[1];
           if (!isInBoard(q2, r2)) {
             continue;
           }
@@ -246,9 +242,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           canidateMoves.add([q2, r2]);
         }
 
-        break;
       case ChessPieceType.queen:
-        var directions = [
+        final directions = [
           [0, -1],
           [1, -1],
           [1, 0],
@@ -262,11 +257,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           [-2, 1],
           [-1, -1],
         ];
-        for (var directions in directions) {
+        for (final directions in directions) {
           var i = 1;
           while (true) {
-            var q2 = q + directions[0] * i;
-            var r2 = r + directions[1] * i;
+            final q2 = q + directions[0] * i;
+            final r2 = r + directions[1] * i;
             if (!isInBoard(q2, r2)) {
               break;
             }
@@ -282,7 +277,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
             i++;
           }
         }
-        break;
       case ChessPieceType.enPassant:
         break;
     }
@@ -294,13 +288,13 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   List<List<int>> calculateRealValidMoves(
       int q, int r, ChessPiece piece, bool checkSimulation) {
     List<List<int>> realValidMoves = [];
-    List<List<int>> canidateMoves = calculateRawValidMoves(q, r, piece);
+    final List<List<int>> canidateMoves = calculateRawValidMoves(q, r, piece);
 
     // after generating canidate moves, check if they are valid
     if (checkSimulation) {
-      for (var move in canidateMoves) {
-        int endQ = move[0];
-        int endR = move[1];
+      for (final move in canidateMoves) {
+        final int endQ = move[0];
+        final int endR = move[1];
         if (simulatedMoveIsSafe(q, r, endQ, endR, piece)) {
           realValidMoves.add(move);
         }
@@ -314,7 +308,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   // check if a move is safe
   bool simulatedMoveIsSafe(int q, int r, int endQ, int endR, ChessPiece piece) {
     // save current board state
-    ChessPiece? originalDestinationPiece = board[endQ][endR];
+    final ChessPiece? originalDestinationPiece = board[endQ][endR];
 
     // if the piece is king, try new move
     List<int>? originalKingPosition;
@@ -335,7 +329,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     board[q][r] = null;
 
     // check if king is in check
-    bool isInCheck = isKingInCheck(piece.isWhite);
+    final bool isInCheck = isKingInCheck(piece.isWhite);
 
     // undo move
     board[q][r] = piece;
@@ -356,8 +350,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   // move the piece to the new location
   void movePiece(int q, int r) {
-    int qStart = (selectedCoordinates!.q + 5);
-    int rStart = (selectedCoordinates!.r + 5);
+    final int qStart = selectedCoordinates!.q + 5;
+    final int rStart = selectedCoordinates!.r + 5;
     // if new spot is occupied with enemy piece, capture it
     if (board[q][r] != null) {
       if (board[q][r]!.type == ChessPieceType.enPassant) {
@@ -513,7 +507,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   // check if king is in check
   bool isKingInCheck(bool isWhiteKing) {
-    List<int> kingPosition =
+    final List<int> kingPosition =
         isWhiteKing ? whiteKingPosition : blackKingPosition;
 
     // check if any enemy piece can capture the king
@@ -524,11 +518,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           continue;
         }
 
-        List<List<int>> pieceValidMoves =
+        final List<List<int>> pieceValidMoves =
             calculateRealValidMoves(i, j, board[i][j]!, false);
 
         // check if any of the valid moves is the king's position
-        for (var move in pieceValidMoves) {
+        for (final move in pieceValidMoves) {
           if (move[0] == kingPosition[0] && move[1] == kingPosition[1]) {
             return true;
           }
@@ -553,7 +547,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           continue;
         }
 
-        List<List<int>> pieceValidMoves =
+        final List<List<int>> pieceValidMoves =
             calculateRealValidMoves(i, j, board[i][j]!, false);
         // if piece has no valid moves, its not checkmate
         if (pieceValidMoves.isNotEmpty) {
@@ -568,8 +562,10 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   // reset the game
   void resetGame() {
-    if (Navigator.canPop(context)) Navigator.pop(context);
-    initBoard();
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    board = initBoard();
     checkStatus = false;
     isWhiteTurn = true;
     whiteCaptured.clear();
@@ -669,7 +665,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         });
                         addToCaptured(ChessPieceType.queen);
                         completePromotionOnline();
-                        if (Navigator.canPop(context)) Navigator.pop(context);
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text('Queen')),
                   ElevatedButton(
@@ -682,7 +680,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         });
                         addToCaptured(ChessPieceType.rook);
                         completePromotionOnline();
-                        if (Navigator.canPop(context)) Navigator.pop(context);
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text('Rook')),
                   ElevatedButton(
@@ -696,7 +696,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         });
                         addToCaptured(ChessPieceType.bishop);
                         completePromotionOnline();
-                        if (Navigator.canPop(context)) Navigator.pop(context);
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text('Bishop')),
                   ElevatedButton(
@@ -710,7 +712,9 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         });
                         addToCaptured(ChessPieceType.knight);
                         completePromotionOnline();
-                        if (Navigator.canPop(context)) Navigator.pop(context);
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
                       },
                       child: const Text('Knight')),
                 ],
@@ -743,10 +747,10 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
   Widget buildCapturedRow(List<ChessPiece> capturedPieces) {
     // widget.isLocal
-    List<List<ChessPiece>> rows = [];
-    for (var piece in capturedPieces) {
+    final List<List<ChessPiece>> rows = [];
+    for (final piece in capturedPieces) {
       bool addedToRow = false;
-      for (List<ChessPiece> row in rows) {
+      for (final List<ChessPiece> row in rows) {
         if (row.isNotEmpty && row.first.type == piece.type) {
           row.add(piece);
           addedToRow = true;
@@ -760,14 +764,14 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     return RowSuper(
       innerDistance: -10,
       children: [
-        for (var list in rows)
+        for (final list in rows)
           RowSuper(
             innerDistance: -40,
             children: [
-              for (var piece in list)
+              for (final piece in list)
                 SimpleShadow(
                   color: piece.isWhite ? Colors.black : Colors.white,
-                  offset: const Offset(0, 0),
+                  offset: Offset.zero,
                   child: Image.asset(
                     piece.imagePath,
                     color: piece.isWhite ? Colors.white : Colors.black,
@@ -792,7 +796,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
 
     // sized of captured rows
-    double capturedSize = 60;
+    const double capturedSize = 60;
     // available height
     final availableHeight = MediaQuery.of(context).size.height -
         AppBar().preferredSize.height -
@@ -800,7 +804,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         MediaQuery.of(context).padding.bottom;
 
     // FIREBASE
-    String gameID = widget.gameID.substring(1);
+    final String gameID = widget.gameID.substring(1);
     bool playerNotInGame = false;
     if (gameID != 'local') {
       // get current games
@@ -822,14 +826,12 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           whiteKingPosition = getKingPosition(board, true);
           blackKingPosition = getKingPosition(board, false);
           if (currentGame.player1 == FirebaseAuth.instance.currentUser!.uid) {
-            shouldFlip = currentGame.isPlayer1White == false;
+            shouldFlip = !currentGame.isPlayer1White;
           } else {
-            shouldFlip = currentGame.isPlayer1White == true;
+            shouldFlip = currentGame.isPlayer1White;
           }
-          break;
         case AsyncError(:final error):
           print(error);
-          break;
       }
     }
 
@@ -870,7 +872,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                       }
                       piece = board[5 + coordinates.q][5 + coordinates.r];
                       isSelected = selectedCoordinates == coordinates;
-                      for (var position in validMoves) {
+                      for (final position in validMoves) {
                         if (position[0] == 5 + coordinates.q &&
                             position[1] == 5 + coordinates.r) {
                           isValidMove = true;
@@ -895,13 +897,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                           cornerRadius: 8.0,
                           child: GestureDetector(
                             onTap: () {
-                              bool isPlayerWhite;
-                              if (shouldFlip == true) {
-                                isPlayerWhite = false;
-                              } else {
-                                isPlayerWhite = true;
-                              }
-                              pieceSelected(coordinates, isPlayerWhite);
+                              pieceSelected(coordinates, shouldFlip != true);
                             },
                             child: piece != null
                                 ? piece!.type == ChessPieceType.enPassant
@@ -938,7 +934,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                         blackCaptured, whiteCaptured) <
                                     0)
                                   Text(
-                                    "+${calculateWorth(blackCaptured, whiteCaptured) * -1}",
+                                    '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -963,7 +959,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                         blackCaptured, whiteCaptured) >
                                     0)
                                   Text(
-                                    "+${calculateWorth(blackCaptured, whiteCaptured)}",
+                                    '+${calculateWorth(blackCaptured, whiteCaptured)}',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -980,18 +976,25 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                gameID != 'local'
-                                    ? FontAwesomeIcons.rightFromBracket
-                                    : FontAwesomeIcons.arrowsRotate,
+                                FontAwesomeIcons.rightFromBracket,
                                 color: Colors.black.withOpacity(0.5),
                                 size: 60,
                               ),
                               onPressed: () {
-                                gameID != 'local'
-                                    ? context.go('/')
-                                    : resetGame();
+                                context.go('/');
                               },
                             ),
+                            if (gameID == 'local')
+                              IconButton(
+                                icon: Icon(
+                                  FontAwesomeIcons.arrowsRotate,
+                                  color: Colors.black.withOpacity(0.5),
+                                  size: 60,
+                                ),
+                                onPressed: () {
+                                  resetGame();
+                                },
+                              ),
                             IconButton(
                               icon: Icon(
                                 FontAwesomeIcons.github,

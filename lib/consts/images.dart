@@ -1,6 +1,6 @@
 import '../components/piece.dart';
 
-final Map<ChessPieceType, String> pieceImagePaths = {
+final Map<ChessPieceType, String> pieceImagePaths = <ChessPieceType, String>{
   ChessPieceType.pawn: 'images/pawn.png',
   ChessPieceType.rook: 'images/rook.png',
   ChessPieceType.knight: 'images/knight.png',

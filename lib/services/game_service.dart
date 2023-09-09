@@ -7,8 +7,6 @@ import 'package:rxdart/rxdart.dart';
 
 import '../components/game.dart';
 
-// TODO Check if .autoDispose is the right choice here
-
 final gamesProvider = StreamProvider.autoDispose<List<OnlineGameModel>>((ref) {
   final CollectionReference gamesCollection =
       FirebaseFirestore.instance.collection('games');
@@ -28,11 +26,11 @@ final gamesProvider = StreamProvider.autoDispose<List<OnlineGameModel>>((ref) {
       (QuerySnapshot player1GamesSnapshot, QuerySnapshot player2GamesSnapshot) {
     final List<OnlineGameModel> player1Games = player1GamesSnapshot.docs
         .map((QueryDocumentSnapshot doc) =>
-            OnlineGameModel.fromJson(doc.data() as Map<String, dynamic>))
+            OnlineGameModel.fromJson(doc.data()! as Map<String, dynamic>))
         .toList();
     final List<OnlineGameModel> player2Games = player2GamesSnapshot.docs
         .map((QueryDocumentSnapshot doc) =>
-            OnlineGameModel.fromJson(doc.data() as Map<String, dynamic>))
+            OnlineGameModel.fromJson(doc.data()! as Map<String, dynamic>))
         .toList();
     return [...player1Games, ...player2Games];
   });

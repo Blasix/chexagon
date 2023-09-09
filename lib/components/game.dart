@@ -1,41 +1,8 @@
-import 'package:chexagon/components/piece.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class GameModel {
-  final String id;
-  final bool isLocal;
-  final DateTime startedAt;
-  final List<List<ChessPiece?>> board;
-  final bool isWhiteTurn;
-  final bool isPlayer1White;
-  // final List<int> whiteKingPosition;
-  // final List<int> blackKingPosition;
-  final List<ChessPiece> whiteCaptured;
-  final List<ChessPiece> blackCaptured;
-
-  GameModel({
-    required this.id,
-    required this.isLocal,
-    required this.startedAt,
-    required this.board,
-    required this.isWhiteTurn,
-    required this.isPlayer1White,
-    required this.whiteCaptured,
-    required this.blackCaptured,
-  });
-}
+import 'piece.dart';
 
 class OnlineGameModel {
-  final String id;
-  final String player1;
-  final String player2;
-  final bool isPlayer1White;
-  final Timestamp startedAt;
-  final List<List<ChessPiece?>> board;
-  final bool isWhiteTurn;
-  final List<ChessPiece> whiteCaptured;
-  final List<ChessPiece> blackCaptured;
-
   OnlineGameModel({
     required this.id,
     required this.player1,
@@ -50,10 +17,10 @@ class OnlineGameModel {
 
   factory OnlineGameModel.fromJson(Map<String, dynamic> json) {
     final whiteCaptured = (json['whiteCaptured'] as List<dynamic>)
-        .map((piece) => ChessPiece.fromJson(piece))
+        .map((piece) => ChessPiece.fromJson(piece as Map<String, dynamic>))
         .toList();
     final blackCaptured = (json['blackCaptured'] as List<dynamic>)
-        .map((piece) => ChessPiece.fromJson(piece))
+        .map((piece) => ChessPiece.fromJson(piece as Map<String, dynamic>))
         .toList();
 
     final board = (json['board'] as List<dynamic>).map((row) {
@@ -63,7 +30,7 @@ class OnlineGameModel {
           // Add a null check here
           return null;
         } else {
-          return ChessPiece.fromJson(piece);
+          return ChessPiece.fromJson(piece as Map<String, dynamic>);
         }
       });
     }).toList();
@@ -81,17 +48,13 @@ class OnlineGameModel {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'player1': player1,
-      'player2': player2,
-      'isPlayer1White': isPlayer1White,
-      'startedAt': DateTime.now(),
-      'board': board,
-      'isWhiteTurn': isWhiteTurn,
-      'whiteCaptured': whiteCaptured,
-      'blackCaptured': blackCaptured,
-    };
-  }
+  final String id;
+  final String player1;
+  final String player2;
+  final bool isPlayer1White;
+  final Timestamp startedAt;
+  final List<List<ChessPiece?>> board;
+  final bool isWhiteTurn;
+  final List<ChessPiece> whiteCaptured;
+  final List<ChessPiece> blackCaptured;
 }

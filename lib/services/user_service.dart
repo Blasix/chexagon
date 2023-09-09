@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../components/user.dart';
@@ -15,7 +15,7 @@ final userProvider = StreamProvider.autoDispose<UserModel?>((ref) {
   });
   final Stream<UserModel?> userModelStream = userStream.map((snapshot) {
     if (snapshot.exists) {
-      return UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
+      return UserModel.fromMap(snapshot.data()!);
     }
     return null;
   });

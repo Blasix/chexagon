@@ -41,16 +41,16 @@ bool isPawnAtInitialPosition(int q, int r, bool isWhite) {
 }
 
 List<List<ChessPiece?>> initBoard() {
-  List<List<ChessPiece?>> newBoard =
+  final List<List<ChessPiece?>> newBoard =
       List.generate(11, (_) => List.filled(11, null));
 
   // place pawns
-  ChessPiece bPawn = ChessPiece(
+  final ChessPiece bPawn = ChessPiece(
     type: ChessPieceType.pawn,
     isWhite: false,
     imagePath: pieceImagePaths[ChessPieceType.pawn]!,
   );
-  ChessPiece wPawn = ChessPiece(
+  final ChessPiece wPawn = ChessPiece(
     type: ChessPieceType.pawn,
     isWhite: true,
     imagePath: pieceImagePaths[ChessPieceType.pawn]!,
@@ -69,12 +69,12 @@ List<List<ChessPiece?>> initBoard() {
   }
 
   // place rooks
-  ChessPiece bRook = ChessPiece(
+  final ChessPiece bRook = ChessPiece(
     type: ChessPieceType.rook,
     isWhite: false,
     imagePath: pieceImagePaths[ChessPieceType.rook]!,
   );
-  ChessPiece wRook = ChessPiece(
+  final ChessPiece wRook = ChessPiece(
     type: ChessPieceType.rook,
     isWhite: true,
     imagePath: pieceImagePaths[ChessPieceType.rook]!,
@@ -85,12 +85,12 @@ List<List<ChessPiece?>> initBoard() {
   newBoard[8][7] = wRook;
 
   // place knights
-  ChessPiece bKnight = ChessPiece(
+  final ChessPiece bKnight = ChessPiece(
     type: ChessPieceType.knight,
     isWhite: false,
     imagePath: pieceImagePaths[ChessPieceType.knight]!,
   );
-  ChessPiece wKnight = ChessPiece(
+  final ChessPiece wKnight = ChessPiece(
     type: ChessPieceType.knight,
     isWhite: true,
     imagePath: pieceImagePaths[ChessPieceType.knight]!,
@@ -101,12 +101,12 @@ List<List<ChessPiece?>> initBoard() {
   newBoard[7][8] = wKnight;
 
   // place bishops
-  ChessPiece bBishop = ChessPiece(
+  final ChessPiece bBishop = ChessPiece(
     type: ChessPieceType.bishop,
     isWhite: false,
     imagePath: pieceImagePaths[ChessPieceType.bishop]!,
   );
-  ChessPiece wBishop = ChessPiece(
+  final ChessPiece wBishop = ChessPiece(
     type: ChessPieceType.bishop,
     isWhite: true,
     imagePath: pieceImagePaths[ChessPieceType.bishop]!,
@@ -145,10 +145,10 @@ List<List<ChessPiece?>> initBoard() {
 
 List<Map<String, dynamic>> convertBoardToListOfMaps(
     List<List<ChessPiece?>> board) {
-  List<Map<String, dynamic>> boardData = [];
+  final List<Map<String, dynamic>> boardData = [];
   for (int i = 0; i < board.length; i++) {
-    List<ChessPiece?> row = board[i];
-    Map<String, dynamic> rowData = {};
+    final List<ChessPiece?> row = board[i];
+    final Map<String, dynamic> rowData = {};
     for (int j = 0; j < row.length; j++) {
       if (row[j] != null) {
         rowData[j.toString()] = row[j]!.toJson();
@@ -157,37 +157,6 @@ List<Map<String, dynamic>> convertBoardToListOfMaps(
     boardData.add(rowData);
   }
   return boardData;
-}
-
-//TODO: this function should convert the output of this function: convertBoardToListOfMaps() back to a board (List<List<ChessPiece?>>)
-List<List<ChessPiece?>> convertListOfMapsToBoard(
-    List<Map<String, dynamic>> boardData) {
-  Map<String, ChessPieceType> typeMap = {
-    'king': ChessPieceType.king,
-    'queen': ChessPieceType.queen,
-    'rook': ChessPieceType.rook,
-    'bishop': ChessPieceType.bishop,
-    'knight': ChessPieceType.knight,
-    'pawn': ChessPieceType.pawn,
-  };
-
-  List<List<ChessPiece?>> board =
-      List.generate(11, (_) => List.filled(11, null));
-  for (int i = 0; i < boardData.length; i++) {
-    Map<String, dynamic> row = boardData[i];
-    for (int j = 0; j < row.length; j++) {
-      if (row.containsKey(j.toString())) {
-        Map<String, dynamic> pieceData = row[j.toString()];
-        ChessPiece piece = ChessPiece(
-          type: typeMap[pieceData['type']]!,
-          isWhite: pieceData['isWhite'],
-          imagePath: pieceData['imagePath'],
-        );
-        board[i][j] = piece;
-      }
-    }
-  }
-  return board;
 }
 
 List<Map<String, dynamic>> convertCapturedListToListOfMaps(

@@ -29,10 +29,10 @@ Future<void> login(
         context.go('/');
       });
     } on FirebaseException catch (error) {
-      showErrorSnackbar(context, error.message);
+      if (context.mounted) showErrorSnackbar(context, error.message);
       return;
     } catch (error) {
-      showErrorSnackbar(context, error.toString());
+      if (context.mounted) showErrorSnackbar(context, error.toString());
       return;
     }
   }
@@ -47,7 +47,7 @@ class LoginScreen extends HookConsumerWidget {
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final passwordFocusNode = useFocusNode();
-    StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
+    final StateController<bool> obscure = ref.watch(_obscureProvider.notifier);
     final isObscure = ref.watch(_obscureProvider);
 
     return Scaffold(
@@ -136,7 +136,7 @@ class LoginScreen extends HookConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Don\'t have an account?',
+                    "Don't have an account?",
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: 16,

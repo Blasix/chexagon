@@ -73,7 +73,9 @@ void showGameCreationDialog(BuildContext context, UserModel currentUser) {
               ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                   onPressed: () {
-                    if (Navigator.canPop(context)) Navigator.pop(context);
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
                   },
                   child: const Text('Cancel')),
               ElevatedButton(
@@ -94,7 +96,9 @@ void showGameCreationDialog(BuildContext context, UserModel currentUser) {
                           .update({
                         'id': value.id,
                       });
-                      if (Navigator.canPop(context)) Navigator.pop(context);
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      }
                       context.go('/game:${value.id}');
                     });
                   },
