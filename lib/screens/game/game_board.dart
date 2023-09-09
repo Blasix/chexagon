@@ -24,9 +24,6 @@ import '../../services/game_service.dart';
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
 // TODO: add posibility to invite other people
-// ! When you move a pawn 2 spaces isWhiteTurn is not updated
-
-void upload;
 
 class GameBoard extends ConsumerStatefulWidget {
   const GameBoard({super.key, required this.gameID});
@@ -471,19 +468,21 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     // check for checkmate
     if (isCheckmate(!isWhiteTurn)) {
       showDialog(
-          barrierDismissible: false,
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text('Checkmate!'),
-                actions: [
-                  // play game again
-                  TextButton(
-                      onPressed: () {
-                        resetGame();
-                      },
-                      child: const Text('Play Again')),
-                ],
-              ));
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Checkmate!'),
+          actions: [
+            // play game again
+            TextButton(
+              onPressed: () {
+                resetGame();
+              },
+              child: const Text('Play Again'),
+            ),
+          ],
+        ),
+      );
     }
 
     // if game is multiplayer, upload to firebase
@@ -633,6 +632,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                     ],
                   ));
         }
+
         // upload to firebase
         FirebaseFirestore.instance
             .collection('games')

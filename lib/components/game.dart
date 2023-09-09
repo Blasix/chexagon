@@ -27,7 +27,6 @@ class OnlineGameModel {
       return List<ChessPiece?>.generate(11, (index) {
         final piece = row[index.toString()];
         if (piece == null) {
-          // Add a null check here
           return null;
         } else {
           return ChessPiece.fromJson(piece as Map<String, dynamic>);

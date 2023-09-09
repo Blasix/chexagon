@@ -15,6 +15,7 @@ class ChessPiece {
       'bishop': ChessPieceType.bishop,
       'knight': ChessPieceType.knight,
       'pawn': ChessPieceType.pawn,
+      'enPassant': ChessPieceType.enPassant,
     };
     final String type = json['type'] as String;
     return ChessPiece(
