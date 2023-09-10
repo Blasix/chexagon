@@ -1,6 +1,8 @@
+import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:chexagon/components/piece.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hexagon/hexagon.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -143,6 +145,18 @@ class GameSelect extends HookConsumerWidget {
                                 mainAxisSpacing: 10,
                               ),
                               itemBuilder: (context, index) {
+                                bool? shouldFlip;
+                                bool doesUserHaveTurn;
+                                if (gamesList[index].player1 ==
+                                    FirebaseAuth.instance.currentUser!.uid) {
+                                  doesUserHaveTurn =
+                                      !gamesList[index].isWhiteTurn;
+                                  shouldFlip = !gamesList[index].isPlayer1White;
+                                } else {
+                                  doesUserHaveTurn =
+                                      gamesList[index].isWhiteTurn;
+                                  shouldFlip = gamesList[index].isPlayer1White;
+                                }
                                 return SizedBox(
                                   width: 100,
                                   height: 100,
@@ -157,59 +171,76 @@ class GameSelect extends HookConsumerWidget {
                                       context
                                           .go('/game:${gamesList[index].id}');
                                     },
-                                    child: HexagonGrid.flat(
-                                      depth: 5,
-                                      buildTile: (coordinates) {
-                                        // should the board be flipped
-                                        bool? shouldFlip;
-                                        if (gamesList[index].player1 ==
-                                            FirebaseAuth
-                                                .instance.currentUser!.uid) {
-                                          shouldFlip =
-                                              !gamesList[index].isPlayer1White;
-                                        } else {
-                                          shouldFlip =
-                                              gamesList[index].isPlayer1White;
-                                        }
-                                        // flip board if needed
-                                        if (shouldFlip == true) {
-                                          coordinates = Coordinates.axial(
-                                              -coordinates.q, -coordinates.r);
-                                        }
-                                        // get piece
-                                        final ChessPiece? piece =
-                                            gamesList[index]
-                                                    .board[5 + coordinates.q]
-                                                [5 + coordinates.r];
-                                        // get color
-                                        final Color? color =
-                                            whatColor(coordinates);
+                                    child: Stack(
+                                      children: [
+                                        HexagonGrid.flat(
+                                          depth: 5,
+                                          buildTile: (coordinates) {
+                                            // flip board if needed
+                                            if (shouldFlip == true) {
+                                              coordinates = Coordinates.axial(
+                                                  -coordinates.q,
+                                                  -coordinates.r);
+                                            }
+                                            // get piece
+                                            final ChessPiece? piece =
+                                                gamesList[index].board[
+                                                        5 + coordinates.q]
+                                                    [5 + coordinates.r];
+                                            // get color
+                                            final Color? color =
+                                                whatColor(coordinates);
 
-                                        // return a widget for the tile
-                                        return HexagonWidgetBuilder(
-                                          elevation: 1,
-                                          color: color,
-                                          padding: 0.8,
-                                          cornerRadius: 1.0,
-                                          child: piece != null
-                                              ? piece.type ==
-                                                      ChessPieceType.enPassant
-                                                  ? null
-                                                  : Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              1.8),
-                                                      child: Image.asset(
-                                                        color: piece.isWhite
-                                                            ? Colors.white
-                                                            : Colors.black,
-                                                        piece.imagePath,
-                                                        fit: BoxFit.contain,
-                                                      ),
-                                                    )
-                                              : null,
-                                        );
-                                      },
+                                            // return a widget for the tile
+                                            return HexagonWidgetBuilder(
+                                              elevation: 1,
+                                              color: color,
+                                              padding: 0.8,
+                                              cornerRadius: 1.0,
+                                              child: piece != null
+                                                  ? piece.type ==
+                                                          ChessPieceType
+                                                              .enPassant
+                                                      ? null
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(1.8),
+                                                          child: Image.asset(
+                                                            color: piece.isWhite
+                                                                ? Colors.white
+                                                                : Colors.black,
+                                                            piece.imagePath,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        )
+                                                  : null,
+                                            );
+                                          },
+                                        ),
+                                        Visibility(
+                                          visible: doesUserHaveTurn,
+                                          child: Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: Container(
+                                                height: 40,
+                                                width: 40,
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.red,
+                                                    width: 4,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(50),
+                                                ),
+                                                child: const Icon(
+                                                  FontAwesomeIcons.exclamation,
+                                                  color: Colors.red,
+                                                  size: 28,
+                                                )),
+                                          ),
+                                        )
+                                      ],
                                     ),
                                   ),
                                 );
