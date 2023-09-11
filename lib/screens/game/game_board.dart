@@ -1,6 +1,8 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
+import 'package:chexagon/helper/message_helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -806,17 +808,32 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     // FIREBASE
     final String gameID = widget.gameID.substring(1);
     bool playerNotInGame = false;
+    bool joinableGame = false;
     if (gameID != 'local') {
       // get current games
       final gamesListProvider = ref.watch(gamesProvider);
       OnlineGameModel? currentGame;
       switch (gamesListProvider) {
         case AsyncData(:final value):
-          // check if a game is found
+          // check if user is in the game
           if (!value.any((element) => element.id == gameID)) {
             playerNotInGame = true;
+            // check if there exists a game with the given id
+            FirebaseFirestore.instance
+                .collection('games')
+                .doc(gameID)
+                .get()
+                .then((value) {
+              if (value.exists) {
+                // check if player2 is an empty string
+                if (value.data()!['player2'] == '') {
+                  joinableGame = true;
+                }
+              }
+            });
             break;
           }
+
           // get current game
           currentGame = value.firstWhere((element) => element.id == gameID);
           board = currentGame.board;
@@ -848,9 +865,30 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         fontWeight: FontWeight.bold,
                       )),
                   const SizedBox(height: 20),
+                  //TODO: joinableGame is getting updated to true but it does not show the button
+                  if (joinableGame)
+                    ElevatedButton(
+                      onPressed: () async {
+                        // join the game as player 2
+                        try {
+                          await FirebaseFirestore.instance
+                              .collection('games')
+                              .doc(gameID)
+                              .update({
+                            'player2': FirebaseAuth.instance.currentUser!.uid,
+                          });
+                        } on FirebaseException catch (e) {
+                          if (context.mounted) {
+                            showErrorSnackbar(context, e.message);
+                          }
+                        }
+                      },
+                      child: const Text('Join the game'),
+                    ),
+                  const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      context.go('/');
+                      print(joinableGame);
                     },
                     child: const Text('Go back'),
                   ),
