@@ -1,8 +1,8 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:chexagon/helper/message_helper.dart';
+import 'package:chexagon/widgets/share.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +26,8 @@ import '../../services/game_service.dart';
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
 // TODO: add posibility to invite other people
+
+final _joinableProvider = StateProvider((ref) => false);
 
 class GameBoard extends ConsumerStatefulWidget {
   const GameBoard({super.key, required this.gameID});
@@ -808,7 +810,8 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     // FIREBASE
     final String gameID = widget.gameID.substring(1);
     bool playerNotInGame = false;
-    bool joinableGame = false;
+    final StateController<bool> joinable =
+        ref.watch(_joinableProvider.notifier);
     if (gameID != 'local') {
       // get current games
       final gamesListProvider = ref.watch(gamesProvider);
@@ -827,7 +830,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
               if (value.exists) {
                 // check if player2 is an empty string
                 if (value.data()!['player2'] == '') {
-                  joinableGame = true;
+                  joinable.state = true;
                 }
               }
             });
@@ -865,8 +868,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         fontWeight: FontWeight.bold,
                       )),
                   const SizedBox(height: 20),
-                  //TODO: joinableGame is getting updated to true but it does not show the button
-                  if (joinableGame)
+                  if (joinable.state)
                     ElevatedButton(
                       onPressed: () async {
                         // join the game as player 2
@@ -885,10 +887,10 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                       },
                       child: const Text('Join the game'),
                     ),
-                  const SizedBox(height: 10),
+                  if (joinable.state) const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
-                      print(joinableGame);
+                      context.go('/');
                     },
                     child: const Text('Go back'),
                   ),
@@ -1010,44 +1012,53 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                       ),
                       Align(
                         alignment: Alignment.topRight,
-                        child: Column(
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                FontAwesomeIcons.rightFromBracket,
-                                color: Colors.black.withOpacity(0.5),
-                                size: 60,
-                              ),
-                              onPressed: () {
-                                context.go('/');
-                              },
-                            ),
-                            if (gameID == 'local')
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 18),
+                          child: Column(
+                            children: [
                               IconButton(
                                 icon: Icon(
-                                  FontAwesomeIcons.arrowsRotate,
+                                  FontAwesomeIcons.rightFromBracket,
                                   color: Colors.black.withOpacity(0.5),
                                   size: 60,
                                 ),
                                 onPressed: () {
-                                  resetGame();
+                                  context.go('/');
                                 },
                               ),
-                            IconButton(
-                              icon: Icon(
-                                FontAwesomeIcons.github,
-                                color: Colors.black.withOpacity(0.5),
-                                size: 60,
+                              IconButton(
+                                icon: Icon(
+                                  gameID == 'local'
+                                      ? FontAwesomeIcons.arrowsRotate
+                                      : FontAwesomeIcons.userPlus,
+                                  color: Colors.black.withOpacity(0.5),
+                                  size: 60,
+                                ),
+                                onPressed: () {
+                                  if (gameID == 'local') {
+                                    resetGame();
+                                  } else {
+                                    showShareDialog(
+                                        context, Uri.base.toString());
+                                  }
+                                },
                               ),
-                              onPressed: () async {
-                                final Uri url = Uri.parse(
-                                    'https://github.com/Blasix/chexagon');
-                                if (!await launchUrl(url)) {
-                                  throw Exception('Could not launch $url');
-                                }
-                              },
-                            ),
-                          ],
+                              IconButton(
+                                icon: Icon(
+                                  FontAwesomeIcons.github,
+                                  color: Colors.black.withOpacity(0.5),
+                                  size: 60,
+                                ),
+                                onPressed: () async {
+                                  final Uri url = Uri.parse(
+                                      'https://github.com/Blasix/chexagon');
+                                  if (!await launchUrl(url)) {
+                                    throw Exception('Could not launch $url');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
