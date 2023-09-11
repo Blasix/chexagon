@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,11 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   setPathUrlStrategy();
+  await FirebaseAppCheck.instance.activate(
+    webRecaptchaSiteKey: '6Lf2xRkoAAAAANTh6ZUfwEHAKYlakx0Vk48AfULo',
+    // androidProvider: AndroidProvider.debug,
+    // appleProvider: AppleProvider.appAttest,
+  );
   runApp(const ProviderScope(child: MyApp()));
 }
 
