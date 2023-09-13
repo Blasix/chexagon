@@ -21,7 +21,6 @@ import '../../helper/piece_helper.dart';
 import '../../services/game_service.dart';
 
 // TODO: make captured lists automagicly calcalated based on board
-// TODO: checkmate not working
 
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
@@ -470,7 +469,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     // check for checkmate
     if (isCheckmate(!isWhiteTurn)) {
-      print('checkmate');
       showDialog(
         barrierDismissible: false,
         context: context,
@@ -539,7 +537,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   bool isCheckmate(bool isWhiteKing) {
     // check if king is in check
     if (!isKingInCheck(isWhiteKing)) {
-      print(false);
       return false;
     }
 
@@ -552,17 +549,15 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         }
 
         final List<List<int>> pieceValidMoves =
-            calculateRealValidMoves(i, j, board[i][j]!, false);
+            calculateRealValidMoves(i, j, board[i][j]!, true);
         // if piece has no valid moves, its not checkmate
         if (pieceValidMoves.isNotEmpty) {
-          print(false);
           return false;
         }
       }
     }
 
     // if there are no legal moves, checkmate
-    print(true);
     return true;
   }
 
@@ -636,7 +631,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
         // check for checkmate
         if (isCheckmate(!isWhiteTurn)) {
-          print('checkmate');
           showDialog(
               barrierDismissible: false,
               context: context,
