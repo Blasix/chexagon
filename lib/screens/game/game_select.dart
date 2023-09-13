@@ -133,7 +133,6 @@ class GameSelect extends HookConsumerWidget {
                             color: cardColor,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          // TODO: make pieces on board visible
                           child: GridView.builder(
                               shrinkWrap: true,
                               itemCount: gamesList.length,

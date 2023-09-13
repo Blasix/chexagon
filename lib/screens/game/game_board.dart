@@ -25,7 +25,6 @@ import '../../services/game_service.dart';
 
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
-// TODO: add posibility to invite other people
 
 final _joinableProvider = StateProvider((ref) => false);
 
@@ -471,6 +470,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
     // check for checkmate
     if (isCheckmate(!isWhiteTurn)) {
+      print('checkmate');
       showDialog(
         barrierDismissible: false,
         context: context,
@@ -539,6 +539,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   bool isCheckmate(bool isWhiteKing) {
     // check if king is in check
     if (!isKingInCheck(isWhiteKing)) {
+      print(false);
       return false;
     }
 
@@ -554,30 +555,44 @@ class _GameBoardState extends ConsumerState<GameBoard> {
             calculateRealValidMoves(i, j, board[i][j]!, false);
         // if piece has no valid moves, its not checkmate
         if (pieceValidMoves.isNotEmpty) {
+          print(false);
           return false;
         }
       }
     }
 
     // if there are no legal moves, checkmate
+    print(true);
     return true;
   }
 
   // reset the game
   void resetGame() {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
+    // if game is multiplayer, delete the game from firebase
+    if (widget.gameID.substring(1) != 'local') {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      FirebaseFirestore.instance
+          .collection('games')
+          .doc(widget.gameID.substring(1))
+          .delete();
+    } else {
+      // else reset the game
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      board = initBoard();
+      checkStatus = false;
+      isWhiteTurn = true;
+      whiteCaptured.clear();
+      blackCaptured.clear();
+      isSelected = false;
+      selectedCoordinates = null;
+      selectedPiece = null;
+      validMoves.clear();
+      setState(() {});
     }
-    board = initBoard();
-    checkStatus = false;
-    isWhiteTurn = true;
-    whiteCaptured.clear();
-    blackCaptured.clear();
-    isSelected = false;
-    selectedCoordinates = null;
-    selectedPiece = null;
-    validMoves.clear();
-    setState(() {});
   }
 
   // pormote pawn
@@ -621,6 +636,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
 
         // check for checkmate
         if (isCheckmate(!isWhiteTurn)) {
+          print('checkmate');
           showDialog(
               barrierDismissible: false,
               context: context,
