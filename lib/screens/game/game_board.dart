@@ -1,5 +1,7 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
+import 'package:chexagon/components/user.dart';
 import 'package:chexagon/helper/message_helper.dart';
+import 'package:chexagon/services/user_service.dart';
 import 'package:chexagon/widgets/share.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,6 +41,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
   // A 2-dimensional list representing the chessboard,
   // with each position possibly containing a chess piece
   late List<List<ChessPiece?>> board;
+
+  // indicates to check data requests
+  int whiteIndex = 0;
+  int blackIndex = 0;
+  int gameIndex = 0;
 
   @override
   void initState() {
@@ -780,7 +787,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
       children: [
         for (final list in rows)
           RowSuper(
-            innerDistance: -40,
+            innerDistance: -36,
             children: [
               for (final piece in list)
                 SimpleShadow(
@@ -797,9 +804,6 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     );
   }
 
-  // sized of captured rows
-  double? capturedSize = 60;
-
   // should the board be flipped
   bool? shouldFlip;
 
@@ -810,7 +814,7 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     blackCaptured.sort((a, b) => a.type.index.compareTo(b.type.index));
 
     // sized of captured rows
-    const double capturedSize = 60;
+    const double capturedSize = 50;
     // available height
     final availableHeight = MediaQuery.of(context).size.height -
         AppBar().preferredSize.height -
@@ -822,6 +826,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
     bool playerNotInGame = false;
     final StateController<bool> joinable =
         ref.watch(_joinableProvider.notifier);
+
+    // players
+    UserModel? whitePlayer = ref.watch(whitePlayerProvider);
+    UserModel? blackPlayer = ref.watch(blackPlayerProvider);
+
     if (gameID != 'local') {
       // get current games
       final gamesListProvider = ref.watch(gamesProvider);
@@ -832,18 +841,21 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           if (!value.any((element) => element.id == gameID)) {
             playerNotInGame = true;
             // check if there exists a game with the given id
-            FirebaseFirestore.instance
-                .collection('games')
-                .doc(gameID)
-                .get()
-                .then((value) {
-              if (value.exists) {
-                // check if player2 is an empty string
-                if (value.data()!['player2'] == '') {
-                  joinable.state = true;
+            if (gameIndex < 1) {
+              FirebaseFirestore.instance
+                  .collection('games')
+                  .doc(gameID)
+                  .get()
+                  .then((value) {
+                gameIndex++;
+                if (value.exists) {
+                  // check if player2 is an empty string
+                  if (value.data()!['player2'] == '') {
+                    joinable.state = true;
+                  }
                 }
-              }
-            });
+              });
+            }
             break;
           }
 
@@ -855,10 +867,32 @@ class _GameBoardState extends ConsumerState<GameBoard> {
           isWhiteTurn = currentGame.isWhiteTurn;
           whiteKingPosition = getKingPosition(board, true);
           blackKingPosition = getKingPosition(board, false);
+
+          // check if should flip
           if (currentGame.player1 == FirebaseAuth.instance.currentUser!.uid) {
             shouldFlip = !currentGame.isPlayer1White;
           } else {
             shouldFlip = currentGame.isPlayer1White;
+          }
+          // update players
+          if (shouldFlip == true) {
+            if (whiteIndex < 1) {
+              whiteIndex++;
+              updateUserWithID(currentGame.player1, true, ref);
+            }
+            if (blackIndex < 1) {
+              blackIndex++;
+              updateUserWithID(currentGame.player2, false, ref);
+            }
+          } else {
+            if (whiteIndex < 1) {
+              whiteIndex++;
+              updateUserWithID(currentGame.player2, true, ref);
+            }
+            if (blackIndex < 1) {
+              blackIndex++;
+              updateUserWithID(currentGame.player1, false, ref);
+            }
           }
         case AsyncError(:final error):
           print(error);
@@ -907,174 +941,241 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                 ],
               ),
             )
-          : Stack(
-              children: [
-                Center(
-                  child: HexagonGrid.flat(
-                    depth: 5,
-                    height: availableHeight - capturedSize * 2,
-                    width: MediaQuery.of(context).size.width,
-                    buildTile: (coordinates) {
-                      // flip board if needed
-                      if (shouldFlip == true) {
-                        coordinates =
-                            Coordinates.axial(-coordinates.q, -coordinates.r);
-                      }
-                      piece = board[5 + coordinates.q][5 + coordinates.r];
-                      isSelected = selectedCoordinates == coordinates;
-                      for (final position in validMoves) {
-                        if (position[0] == 5 + coordinates.q &&
-                            position[1] == 5 + coordinates.r) {
-                          isValidMove = true;
-                          break;
-                        } else {
-                          isValidMove = false;
+          : SafeArea(
+              child: Stack(
+                children: [
+                  Center(
+                    child: HexagonGrid.flat(
+                      depth: 5,
+                      height: availableHeight - capturedSize * 2,
+                      width: MediaQuery.of(context).size.width,
+                      buildTile: (coordinates) {
+                        // flip board if needed
+                        if (shouldFlip == true) {
+                          coordinates =
+                              Coordinates.axial(-coordinates.q, -coordinates.r);
                         }
-                      }
-                      Color? color = whatColor(coordinates);
+                        piece = board[5 + coordinates.q][5 + coordinates.r];
+                        isSelected = selectedCoordinates == coordinates;
+                        for (final position in validMoves) {
+                          if (position[0] == 5 + coordinates.q &&
+                              position[1] == 5 + coordinates.r) {
+                            isValidMove = true;
+                            break;
+                          } else {
+                            isValidMove = false;
+                          }
+                        }
+                        Color? color = whatColor(coordinates);
 
-                      // set color for the tile
-                      if (isSelected) {
-                        color = Colors.green;
-                      } else if (isValidMove) {
-                        color = Colors.green[300];
-                      }
+                        // set color for the tile
+                        if (isSelected) {
+                          color = Colors.green;
+                        } else if (isValidMove) {
+                          color = Colors.green[300];
+                        }
 
-                      // return a widget for the tile
-                      return HexagonWidgetBuilder(
-                          color: color,
-                          padding: 2.0,
-                          cornerRadius: 8.0,
-                          child: GestureDetector(
-                            onTap: () {
-                              pieceSelected(coordinates, shouldFlip != true);
+                        // return a widget for the tile
+                        return HexagonWidgetBuilder(
+                            color: color,
+                            padding: 2.0,
+                            cornerRadius: 8.0,
+                            child: GestureDetector(
+                              onTap: () {
+                                pieceSelected(coordinates, shouldFlip != true);
+                              },
+                              child: piece != null
+                                  ? piece!.type == ChessPieceType.enPassant
+                                      ? null
+                                      : Padding(
+                                          padding: const EdgeInsets.all(5),
+                                          child: Image.asset(
+                                            color: piece!.isWhite
+                                                ? Colors.white
+                                                : Colors.black,
+                                            piece!.imagePath,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        )
+                                  : null,
+                            ));
+                      },
+                    ),
+                  ),
+                  Align(
+                    alignment: (shouldFlip == true)
+                        ? Alignment.topLeft
+                        : Alignment.bottomLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: capturedSize + 20,
+                            width: capturedSize + 20,
+                            child: (blackPlayer != null)
+                                ? (blackPlayer.pfpUrl == "")
+                                    ? Image.asset('images/pfp_placeholder.jpg')
+                                    : Image.network(blackPlayer.pfpUrl)
+                                : Image.asset('images/pfp_select.png'),
+                          ),
+                          SizedBox(
+                            height: capturedSize + 20,
+                            width: capturedSize + 20,
+                            child: Column(
+                              children: [
+                                Text(
+                                  (blackPlayer != null)
+                                      ? blackPlayer.username
+                                      : '???',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: capturedSize,
+                                  child: SingleChildScrollView(
+                                    controller: ScrollController(),
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        buildCapturedRow(blackCaptured),
+                                        if (calculateWorth(
+                                                blackCaptured, whiteCaptured) <
+                                            0)
+                                          Text(
+                                            '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.black
+                                                    .withOpacity(0.5)),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: (shouldFlip == true)
+                        ? Alignment.bottomLeft
+                        : Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            height: capturedSize + 20,
+                            width: capturedSize + 20,
+                            child: (whitePlayer != null)
+                                ? (whitePlayer.pfpUrl == "")
+                                    ? Image.asset('images/pfp_placeholder.jpg')
+                                    : Image.network(whitePlayer.pfpUrl)
+                                : Image.asset('images/pfp_select.png'),
+                          ),
+                          SizedBox(
+                            height: capturedSize + 20,
+                            width: capturedSize + 20,
+                            child: Column(
+                              children: [
+                                Text(
+                                  (whitePlayer != null)
+                                      ? whitePlayer.username
+                                      : '???',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black.withOpacity(0.5),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: capturedSize,
+                                  child: SingleChildScrollView(
+                                    controller: ScrollController(),
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        buildCapturedRow(whiteCaptured),
+                                        if (calculateWorth(
+                                                blackCaptured, whiteCaptured) >
+                                            0)
+                                          Text(
+                                            '+${calculateWorth(blackCaptured, whiteCaptured)}',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.black
+                                                    .withOpacity(0.5)),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 18),
+                      child: Column(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              FontAwesomeIcons.rightFromBracket,
+                              color: Colors.black.withOpacity(0.5),
+                              size: 60,
+                            ),
+                            onPressed: () {
+                              context.go('/');
                             },
-                            child: piece != null
-                                ? piece!.type == ChessPieceType.enPassant
-                                    ? null
-                                    : Padding(
-                                        padding: const EdgeInsets.all(5),
-                                        child: Image.asset(
-                                          color: piece!.isWhite
-                                              ? Colors.white
-                                              : Colors.black,
-                                          piece!.imagePath,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      )
-                                : null,
-                          ));
-                    },
-                  ),
-                ),
-                SafeArea(
-                  child: Stack(
-                    children: [
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: SizedBox(
-                          height: capturedSize,
-                          child: SingleChildScrollView(
-                            controller: ScrollController(),
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                buildCapturedRow(blackCaptured),
-                                if (calculateWorth(
-                                        blackCaptured, whiteCaptured) <
-                                    0)
-                                  Text(
-                                    '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black.withOpacity(0.5)),
-                                  ),
-                              ],
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              gameID == 'local'
+                                  ? FontAwesomeIcons.arrowsRotate
+                                  : FontAwesomeIcons.userPlus,
+                              color: Colors.black.withOpacity(0.5),
+                              size: 60,
                             ),
+                            onPressed: () {
+                              if (gameID == 'local') {
+                                resetGame();
+                              } else {
+                                showShareDialog(context, Uri.base.toString());
+                              }
+                            },
                           ),
-                        ),
-                      ),
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: SizedBox(
-                          height: capturedSize,
-                          child: SingleChildScrollView(
-                            controller: ScrollController(),
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                buildCapturedRow(whiteCaptured),
-                                if (calculateWorth(
-                                        blackCaptured, whiteCaptured) >
-                                    0)
-                                  Text(
-                                    '+${calculateWorth(blackCaptured, whiteCaptured)}',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black.withOpacity(0.5)),
-                                  ),
-                              ],
+                          IconButton(
+                            icon: Icon(
+                              FontAwesomeIcons.github,
+                              color: Colors.black.withOpacity(0.5),
+                              size: 60,
                             ),
+                            onPressed: () async {
+                              final Uri url = Uri.parse(
+                                  'https://github.com/Blasix/chexagon');
+                              if (!await launchUrl(url)) {
+                                throw Exception('Could not launch $url');
+                              }
+                            },
                           ),
-                        ),
+                        ],
                       ),
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 18),
-                          child: Column(
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  FontAwesomeIcons.rightFromBracket,
-                                  color: Colors.black.withOpacity(0.5),
-                                  size: 60,
-                                ),
-                                onPressed: () {
-                                  context.go('/');
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  gameID == 'local'
-                                      ? FontAwesomeIcons.arrowsRotate
-                                      : FontAwesomeIcons.userPlus,
-                                  color: Colors.black.withOpacity(0.5),
-                                  size: 60,
-                                ),
-                                onPressed: () {
-                                  if (gameID == 'local') {
-                                    resetGame();
-                                  } else {
-                                    showShareDialog(
-                                        context, Uri.base.toString());
-                                  }
-                                },
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  FontAwesomeIcons.github,
-                                  color: Colors.black.withOpacity(0.5),
-                                  size: 60,
-                                ),
-                                onPressed: () async {
-                                  final Uri url = Uri.parse(
-                                      'https://github.com/Blasix/chexagon');
-                                  if (!await launchUrl(url)) {
-                                    throw Exception('Could not launch $url');
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }

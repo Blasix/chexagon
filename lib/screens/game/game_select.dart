@@ -57,13 +57,21 @@ class GameSelect extends HookConsumerWidget {
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: GestureDetector(
-                  //TODO: add ability to change profile picture
-                  //for picture: https://github.com/Blasix/group_planner_app/blob/master/lib/screens/user.dart
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(50),
                   onTap: () {
                     showAccountDialog(context, currentUser!);
                   },
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    backgroundImage:
+                        (currentUser == null || currentUser.pfpUrl != '')
+                            ? null
+                            : const AssetImage('images/pfp_placeholder.jpg'),
+                    foregroundImage:
+                        (currentUser == null || currentUser.pfpUrl == '')
+                            ? null
+                            : NetworkImage(currentUser.pfpUrl),
                     radius: 30,
                   ),
                 ),
@@ -147,13 +155,16 @@ class GameSelect extends HookConsumerWidget {
                                 bool doesUserHaveTurn;
                                 if (gamesList[index].player1 ==
                                     FirebaseAuth.instance.currentUser!.uid) {
+                                  shouldFlip = !gamesList[index].isPlayer1White;
+                                } else {
+                                  shouldFlip = gamesList[index].isPlayer1White;
+                                }
+                                if (shouldFlip) {
                                   doesUserHaveTurn =
                                       !gamesList[index].isWhiteTurn;
-                                  shouldFlip = !gamesList[index].isPlayer1White;
                                 } else {
                                   doesUserHaveTurn =
                                       gamesList[index].isWhiteTurn;
-                                  shouldFlip = gamesList[index].isPlayer1White;
                                 }
                                 return SizedBox(
                                   width: 100,

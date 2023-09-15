@@ -21,3 +21,24 @@ final userProvider = StreamProvider.autoDispose<UserModel?>((ref) {
   });
   return userModelStream;
 });
+
+final whitePlayerProvider = StateProvider<UserModel?>((ref) => null);
+final blackPlayerProvider = StateProvider<UserModel?>((ref) => null);
+
+// get user with id
+void updateUserWithID(String id, bool isWhitePlayer, WidgetRef ref) {
+  if (id == "") {
+    return;
+  }
+  FirebaseFirestore.instance.collection('users').doc(id).get().then(
+    (snapshot) {
+      if (snapshot.exists) {
+        isWhitePlayer
+            ? ref.read(whitePlayerProvider.notifier).state =
+                UserModel.fromMap(snapshot.data()!)
+            : ref.read(blackPlayerProvider.notifier).state =
+                UserModel.fromMap(snapshot.data()!);
+      }
+    },
+  );
+}

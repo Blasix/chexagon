@@ -7,6 +7,10 @@ import 'package:go_router/go_router.dart';
 import '../components/user.dart';
 import '../consts/colors.dart';
 
+// TODO: add ability to change profile picture
+// TODO: add ability to change username/email
+// for picture: https://github.com/Blasix/group_planner_app/blob/master/lib/screens/user.dart
+
 String calculateAccountAge(Timestamp createdAt) {
   final now = DateTime.now();
   final createdAtDate = createdAt.toDate();
@@ -53,9 +57,17 @@ void showAccountDialog(BuildContext context, UserModel user) {
                         borderRadius: BorderRadius.circular(50),
                         child: Stack(
                           children: [
-                            const Align(
+                            Align(
                               alignment: Alignment.center,
                               child: CircleAvatar(
+                                backgroundColor: Colors.transparent,
+                                backgroundImage: (user.pfpUrl != '')
+                                    ? null
+                                    : const AssetImage(
+                                        'images/pfp_placeholder.jpg'),
+                                foregroundImage: (user.pfpUrl == '')
+                                    ? null
+                                    : NetworkImage(user.pfpUrl),
                                 radius: 30,
                               ),
                             ),
