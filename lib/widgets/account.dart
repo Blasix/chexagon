@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../components/user.dart';
+import '../consts/colors.dart';
 
 String calculateAccountAge(Timestamp createdAt) {
   final now = DateTime.now();
@@ -42,8 +43,41 @@ void showAccountDialog(BuildContext context, UserModel user) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const CircleAvatar(
-                      radius: 30,
+                    SizedBox(
+                      height: 60,
+                      width: 60,
+                      child: InkWell(
+                        onTap: () {
+                          print('avatar');
+                        },
+                        borderRadius: BorderRadius.circular(50),
+                        child: Stack(
+                          children: [
+                            const Align(
+                              alignment: Alignment.center,
+                              child: CircleAvatar(
+                                radius: 30,
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFe3e3e3),
+                                  border: Border.all(color: cardColor!),
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
+                                child: Icon(
+                                  FontAwesomeIcons.pen,
+                                  color: bgColor,
+                                  size: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -60,17 +94,63 @@ void showAccountDialog(BuildContext context, UserModel user) {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(
-                  user.username,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                InkWell(
+                  borderRadius: BorderRadius.circular(5),
+                  onTap: () {
+                    print('username');
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        user.username,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: cardColor!),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          FontAwesomeIcons.pen,
+                          color: bgColor,
+                          size: 18,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  user.email,
-                  style: const TextStyle(
-                    fontSize: 18,
+                InkWell(
+                  borderRadius: BorderRadius.circular(5),
+                  onTap: () {
+                    print('mail');
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        user.email,
+                        style: const TextStyle(
+                          fontSize: 22,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: cardColor!),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Icon(
+                          FontAwesomeIcons.pen,
+                          color: bgColor,
+                          size: 18,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 10),
