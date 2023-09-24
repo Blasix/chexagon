@@ -54,6 +54,7 @@ dependencies:
   firebase_app_check: ^0.1.5+2
   image_picker: ^1.0.4
   firebase_storage: ^11.2.7
+  universal_io: ^2.2.2
 
 dev_dependencies:
   flutter_test:

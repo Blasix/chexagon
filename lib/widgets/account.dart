@@ -3,13 +3,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+// import 'package:firebase_storage/firebase_storage.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:universal_io/io.dart';
 
 import '../components/user.dart';
 import '../consts/colors.dart';
+import '../helper/message_helper.dart';
 
-// TODO: add ability to change profile picture
 // TODO: add ability to change username/email
-// for picture: https://github.com/Blasix/group_planner_app/blob/master/lib/screens/user.dart
 
 String calculateAccountAge(Timestamp createdAt) {
   final now = DateTime.now();
@@ -18,7 +20,7 @@ String calculateAccountAge(Timestamp createdAt) {
   switch (difference.inSeconds) {
     case > 29030400:
       return '${difference.inDays ~/ 365} years ago';
-    case > 2419200:
+    case > 2592000:
       return '${difference.inDays ~/ 30} months ago';
     case > 604800:
       return '${difference.inDays ~/ 7} weeks ago';
@@ -31,6 +33,44 @@ String calculateAccountAge(Timestamp createdAt) {
     default:
       return '${difference.inSeconds} seconds ago';
   }
+}
+
+Future<void> deleteAccount(BuildContext context) async {
+  try {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    // TODO dispose providers
+    await FirebaseFirestore.instance.collection('users').doc(uid).delete();
+    // await FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg').delete();
+    await FirebaseAuth.instance.currentUser!.delete();
+    if (context.mounted) {
+      Navigator.pop(context);
+      context.go('/login');
+    }
+  } catch (error) {
+    if (context.mounted) showErrorSnackbar(context, error.toString());
+  }
+}
+
+Future<void> changePfp(BuildContext context) async {
+  // TODO fix
+  // try {
+  //   final image = await ImagePicker().pickImage(
+  //     source: ImageSource.gallery,
+  //     imageQuality: 50,
+  //   );
+  //   final uid = FirebaseAuth.instance.currentUser!.uid;
+  //   Reference ref =
+  //       FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
+  //   if (image == null) return;
+  //   await ref.putFile(File(image.path));
+  //   ref.getDownloadURL().then((value) async {
+  //     await FirebaseFirestore.instance.collection('users').doc(uid).update({
+  //       'pfpUrl': value,
+  //     });
+  //   });
+  // } catch (error) {
+  //   if (context.mounted) showErrorSnackbar(context, error.toString());
+  // }
 }
 
 void showAccountDialog(BuildContext context, UserModel user) {
@@ -51,8 +91,8 @@ void showAccountDialog(BuildContext context, UserModel user) {
                 height: 60,
                 width: 60,
                 child: InkWell(
-                  onTap: () {
-                    print('avatar');
+                  onTap: () async {
+                    await changePfp(context);
                   },
                   borderRadius: BorderRadius.circular(50),
                   child: Stack(
@@ -105,99 +145,57 @@ void showAccountDialog(BuildContext context, UserModel user) {
             ],
           ),
           const SizedBox(height: 10),
-          InkWell(
-            borderRadius: BorderRadius.circular(5),
-            onTap: () {
-              print('username');
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  user.username,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: cardColor!),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Icon(
-                    FontAwesomeIcons.pen,
-                    color: bgColor,
-                    size: 18,
-                  ),
-                ),
-              ],
+          Text(
+            user.username,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
             ),
           ),
-          InkWell(
-            borderRadius: BorderRadius.circular(5),
-            onTap: () {
-              print('mail');
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  user.email,
-                  style: const TextStyle(
-                    fontSize: 22,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: cardColor!),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Icon(
-                    FontAwesomeIcons.pen,
-                    color: bgColor,
-                    size: 18,
-                  ),
-                ),
-              ],
+          Text(
+            user.email,
+            style: const TextStyle(
+              fontSize: 22,
             ),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) context.go('/login');
-            },
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(FontAwesomeIcons.arrowRightFromBracket,
-                    color: Colors.red, size: 20),
-                SizedBox(width: 6),
-                Text('Logout'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO delete account
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(FontAwesomeIcons.trash, color: Colors.white, size: 20),
-                SizedBox(width: 6),
-                Text('Delete'),
-              ],
-            ),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  // TODO dispose providers
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) context.go('/login');
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(FontAwesomeIcons.arrowRightFromBracket,
+                        color: Colors.red, size: 20),
+                    SizedBox(width: 6),
+                    Text('Logout'),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  await deleteAccount(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(FontAwesomeIcons.trash, color: Colors.white, size: 20),
+                    SizedBox(width: 6),
+                    Text('Delete'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
