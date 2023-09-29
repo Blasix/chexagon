@@ -1008,59 +1008,86 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         : Alignment.bottomLeft,
                     child: Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: capturedSize + 20,
-                            width: capturedSize + 20,
-                            child: (blackPlayer != null)
-                                ? (blackPlayer.pfpUrl == "")
-                                    ? Image.asset('images/pfp_placeholder.jpg')
-                                    : Image.network(blackPlayer.pfpUrl)
-                                : Image.asset('images/pfp_select.png'),
-                          ),
-                          SizedBox(
-                            height: capturedSize + 20,
-                            width: capturedSize + 20,
-                            child: Column(
+                      child: (gameID == "local")
+                          ? SizedBox(
+                              height: capturedSize,
+                              child: SingleChildScrollView(
+                                controller: ScrollController(),
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    buildCapturedRow(blackCaptured),
+                                    if (calculateWorth(
+                                            blackCaptured, whiteCaptured) <
+                                        0)
+                                      Text(
+                                        '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                                Colors.black.withOpacity(0.5)),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Row(
                               children: [
-                                Text(
-                                  (blackPlayer != null)
-                                      ? blackPlayer.username
-                                      : '???',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black.withOpacity(0.5),
-                                  ),
+                                SizedBox(
+                                  height: capturedSize + 20,
+                                  width: capturedSize + 20,
+                                  child: (blackPlayer != null)
+                                      ? (blackPlayer.pfpUrl == "")
+                                          ? Image.asset(
+                                              'images/pfp_placeholder.jpg')
+                                          : Image.network(blackPlayer.pfpUrl)
+                                      : Image.asset('images/pfp_select.png'),
                                 ),
                                 SizedBox(
-                                  height: capturedSize,
-                                  child: SingleChildScrollView(
-                                    controller: ScrollController(),
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        buildCapturedRow(blackCaptured),
-                                        if (calculateWorth(
-                                                blackCaptured, whiteCaptured) <
-                                            0)
-                                          Text(
-                                            '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                color: Colors.black
-                                                    .withOpacity(0.5)),
+                                  height: capturedSize + 20,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (blackPlayer != null)
+                                            ? blackPlayer.username
+                                            : '???',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: capturedSize,
+                                        child: SingleChildScrollView(
+                                          controller: ScrollController(),
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: [
+                                              buildCapturedRow(blackCaptured),
+                                              if (calculateWorth(blackCaptured,
+                                                      whiteCaptured) <
+                                                  0)
+                                                Text(
+                                                  '+${calculateWorth(blackCaptured, whiteCaptured) * -1}',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: Colors.black
+                                                          .withOpacity(0.5)),
+                                                ),
+                                            ],
                                           ),
-                                      ],
-                                    ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   Align(
@@ -1069,59 +1096,86 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                         : Alignment.topLeft,
                     child: Padding(
                       padding: const EdgeInsets.all(6),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: capturedSize + 20,
-                            width: capturedSize + 20,
-                            child: (whitePlayer != null)
-                                ? (whitePlayer.pfpUrl == "")
-                                    ? Image.asset('images/pfp_placeholder.jpg')
-                                    : Image.network(whitePlayer.pfpUrl)
-                                : Image.asset('images/pfp_select.png'),
-                          ),
-                          SizedBox(
-                            height: capturedSize + 20,
-                            width: capturedSize + 20,
-                            child: Column(
+                      child: (gameID == "local")
+                          ? SizedBox(
+                              height: capturedSize,
+                              child: SingleChildScrollView(
+                                controller: ScrollController(),
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    buildCapturedRow(whiteCaptured),
+                                    if (calculateWorth(
+                                            blackCaptured, whiteCaptured) >
+                                        0)
+                                      Text(
+                                        '+${calculateWorth(blackCaptured, whiteCaptured)}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                                Colors.black.withOpacity(0.5)),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : Row(
                               children: [
-                                Text(
-                                  (whitePlayer != null)
-                                      ? whitePlayer.username
-                                      : '???',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black.withOpacity(0.5),
-                                  ),
+                                SizedBox(
+                                  height: capturedSize + 20,
+                                  width: capturedSize + 20,
+                                  child: (whitePlayer != null)
+                                      ? (whitePlayer.pfpUrl == "")
+                                          ? Image.asset(
+                                              'images/pfp_placeholder.jpg')
+                                          : Image.network(whitePlayer.pfpUrl)
+                                      : Image.asset('images/pfp_select.png'),
                                 ),
                                 SizedBox(
-                                  height: capturedSize,
-                                  child: SingleChildScrollView(
-                                    controller: ScrollController(),
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        buildCapturedRow(whiteCaptured),
-                                        if (calculateWorth(
-                                                blackCaptured, whiteCaptured) >
-                                            0)
-                                          Text(
-                                            '+${calculateWorth(blackCaptured, whiteCaptured)}',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                color: Colors.black
-                                                    .withOpacity(0.5)),
+                                  height: capturedSize + 20,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (whitePlayer != null)
+                                            ? whitePlayer.username
+                                            : '???',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black.withOpacity(0.5),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: capturedSize,
+                                        child: SingleChildScrollView(
+                                          controller: ScrollController(),
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: [
+                                              buildCapturedRow(whiteCaptured),
+                                              if (calculateWorth(blackCaptured,
+                                                      whiteCaptured) >
+                                                  0)
+                                                Text(
+                                                  '+${calculateWorth(blackCaptured, whiteCaptured)}',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: Colors.black
+                                                          .withOpacity(0.5)),
+                                                ),
+                                            ],
                                           ),
-                                      ],
-                                    ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   Align(
