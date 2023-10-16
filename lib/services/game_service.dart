@@ -1,5 +1,3 @@
-// get all games of wich the current user their id is either player1 or player2
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

@@ -639,19 +639,21 @@ class _GameBoardState extends ConsumerState<GameBoard> {
         // check for checkmate
         if (isCheckmate(!isWhiteTurn)) {
           showDialog(
-              barrierDismissible: false,
-              context: context,
-              builder: (context) => AlertDialog(
-                    title: const Text('Checkmate!'),
-                    actions: [
-                      // play game again
-                      TextButton(
-                          onPressed: () {
-                            resetGame();
-                          },
-                          child: const Text('Play Again')),
-                    ],
-                  ));
+            barrierDismissible: false,
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Checkmate!'),
+              actions: [
+                // play game again
+                TextButton(
+                  onPressed: () {
+                    resetGame();
+                  },
+                  child: const Text('Play Again'),
+                ),
+              ],
+            ),
+          );
         }
 
         // upload to firebase

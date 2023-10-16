@@ -3,9 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:universal_io/io.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../components/user.dart';
 import '../consts/colors.dart';
@@ -52,25 +51,28 @@ Future<void> deleteAccount(BuildContext context) async {
 }
 
 Future<void> changePfp(BuildContext context) async {
-  // TODO fix
-  // try {
-  //   final image = await ImagePicker().pickImage(
-  //     source: ImageSource.gallery,
-  //     imageQuality: 50,
-  //   );
-  //   final uid = FirebaseAuth.instance.currentUser!.uid;
-  //   Reference ref =
-  //       FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
-  //   if (image == null) return;
-  //   await ref.putFile(File(image.path));
-  //   ref.getDownloadURL().then((value) async {
-  //     await FirebaseFirestore.instance.collection('users').doc(uid).update({
-  //       'pfpUrl': value,
-  //     });
-  //   });
-  // } catch (error) {
-  //   if (context.mounted) showErrorSnackbar(context, error.toString());
-  // }
+  try {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    Reference ref =
+        FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
+    if (image == null) return;
+    await ref.putData(
+        await image.readAsBytes(),
+        SettableMetadata(
+          contentType: 'image/jpeg',
+        ));
+    ref.getDownloadURL().then((value) async {
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'pfpUrl': value,
+      });
+    });
+  } catch (error) {
+    if (context.mounted) showErrorSnackbar(context, error.toString());
+  }
 }
 
 void showAccountDialog(BuildContext context, UserModel user) {
