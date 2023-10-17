@@ -39,7 +39,10 @@ Future<void> deleteAccount(BuildContext context) async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     // TODO dispose providers
     await FirebaseFirestore.instance.collection('users').doc(uid).delete();
-    // await FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg').delete();
+    await FirebaseStorage.instance
+        .ref()
+        .child('profile_pictures/$uid.jpg')
+        .delete();
     await FirebaseAuth.instance.currentUser!.delete();
     if (context.mounted) {
       Navigator.pop(context);
