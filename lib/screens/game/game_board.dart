@@ -1042,9 +1042,17 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                   child: (blackPlayer != null)
                                       ? (blackPlayer.pfpUrl == "")
                                           ? Image.asset(
-                                              'images/pfp_placeholder.jpg')
-                                          : Image.network(blackPlayer.pfpUrl)
-                                      : Image.asset('images/pfp_select.png'),
+                                              'images/pfp_placeholder.jpg',
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.network(
+                                              blackPlayer.pfpUrl,
+                                              fit: BoxFit.cover,
+                                            )
+                                      : Image.asset(
+                                          'images/pfp_select.png',
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                                 SizedBox(
                                   height: capturedSize + 20,
@@ -1052,13 +1060,18 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        (blackPlayer != null)
-                                            ? blackPlayer.username
-                                            : '???',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black.withOpacity(0.5),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          (blackPlayer != null)
+                                              ? blackPlayer.username
+                                              : '???',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                Colors.black.withOpacity(0.5),
+                                          ),
                                         ),
                                       ),
                                       SizedBox(
@@ -1130,9 +1143,17 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                   child: (whitePlayer != null)
                                       ? (whitePlayer.pfpUrl == "")
                                           ? Image.asset(
-                                              'images/pfp_placeholder.jpg')
-                                          : Image.network(whitePlayer.pfpUrl)
-                                      : Image.asset('images/pfp_select.png'),
+                                              'images/pfp_placeholder.jpg',
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Image.network(
+                                              whitePlayer.pfpUrl,
+                                              fit: BoxFit.cover,
+                                            )
+                                      : Image.asset(
+                                          'images/pfp_select.png',
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                                 SizedBox(
                                   height: capturedSize + 20,
@@ -1140,13 +1161,18 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        (whitePlayer != null)
-                                            ? whitePlayer.username
-                                            : '???',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black.withOpacity(0.5),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: Text(
+                                          (whitePlayer != null)
+                                              ? whitePlayer.username
+                                              : '???',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color:
+                                                Colors.black.withOpacity(0.5),
+                                          ),
                                         ),
                                       ),
                                       SizedBox(

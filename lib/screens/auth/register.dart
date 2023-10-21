@@ -219,6 +219,31 @@ class RegisterScreen extends HookConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
+                      "Just want to play?",
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).dividerColor.withOpacity(0.4),
+                      ),
+                    ),
+                    TextButton(
+                        onPressed: () {
+                          context.go('/game:local');
+                        },
+                        child: Text(
+                          'Play as guest',
+                          maxLines: 1,
+                          style: TextStyle(
+                            color: Colors.blue[800]!.withOpacity(0.8),
+                            fontSize: 16,
+                          ),
+                        )),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
                       'Already have an account?',
                       maxLines: 1,
                       style: TextStyle(
