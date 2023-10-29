@@ -1219,7 +1219,11 @@ class _GameBoardState extends ConsumerState<GameBoard> {
                               size: 60,
                             ),
                             onPressed: () {
-                              context.go('/');
+                              if (FirebaseAuth.instance.currentUser == null) {
+                                context.go('/login');
+                              } else {
+                                context.go('/');
+                              }
                             },
                           ),
                           IconButton(

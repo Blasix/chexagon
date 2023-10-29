@@ -44,7 +44,8 @@ Future<void> main() async {
   );
   setPathUrlStrategy();
   await FirebaseAppCheck.instance.activate(
-    webRecaptchaSiteKey: '6Lf2xRkoAAAAANTh6ZUfwEHAKYlakx0Vk48AfULo',
+    webProvider:
+        ReCaptchaV3Provider('6Lf2xRkoAAAAANTh6ZUfwEHAKYlakx0Vk48AfULo'),
     // androidProvider: AndroidProvider.debug,
     // appleProvider: AppleProvider.appAttest,
   );
