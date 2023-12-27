@@ -41,6 +41,7 @@ final _router = GoRouter(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -56,7 +57,7 @@ Future<void> main() async {
   await FirebaseAppCheck.instance.activate(
     webProvider:
         ReCaptchaV3Provider('6Lf2xRkoAAAAANTh6ZUfwEHAKYlakx0Vk48AfULo'),
-    // androidProvider: AndroidProvider.debug,
+    androidProvider: AndroidProvider.debug,
     // appleProvider: AppleProvider.appAttest,
   );
   runApp(const ProviderScope(child: MyApp()));

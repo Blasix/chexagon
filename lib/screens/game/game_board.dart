@@ -23,6 +23,7 @@ import '../../helper/piece_helper.dart';
 import '../../services/game_service.dart';
 
 // TODO: make captured lists automagicly calcalated based on board
+// TODO: fix sometimes when moving a piece entire board turns green
 
 // multiplayer
 // TODO: for now it does everything twice so once on divice then upload to firebase maby optimize later
